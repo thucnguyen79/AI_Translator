@@ -179,4 +179,4 @@
 | 2026-10-28 | `fb828f0` | Thanh công cụ gọn + nền phân vùng (yêu cầu mới), F6.2 Quanh bàn, F2.6 rảnh tay, F3.4 gói nhận diện ngôn ngữ (103 MB), chọn giọng, tên từng người — chưa thử trên máy (máy chưa cắm) |
 | 2026-10-28 | `f5abf50` | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
 | 2026-10-28 | `157b90b` | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |
-| 2026-10-28 | _(commit này)_ | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
+| 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
