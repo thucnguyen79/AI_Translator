@@ -149,4 +149,4 @@
 | 2026-10-28 | — | Thử đổi ngôn ngữ giữa hội thoại trên máy: ghi 3 lỗi (F1.5) |
 | 2026-10-28 | `3552b6c` | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |
 | 2026-10-28 | `a226e88` | F2.1, F2.5, F5.1, F5.4, F6.3, F8.2 (Wi-Fi, dung lượng, tải nền), F10.1 song ngữ — chưa thử trên máy vì mất kết nối |
-| 2026-10-28 | (commit này) | Thử trên máy các mục MVP mới; sửa crash khi tải gói, hàng chọn ngôn ngữ ở nửa trên; thêm route TTS vào Chẩn đoán |
+| 2026-10-28 | `f358c16` | Thử trên máy các mục MVP mới; sửa crash khi tải gói, hàng chọn ngôn ngữ ở nửa trên; thêm route TTS vào Chẩn đoán |
