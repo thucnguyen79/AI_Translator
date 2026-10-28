@@ -18,12 +18,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -41,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -80,7 +84,8 @@ internal fun ListConversation(
     var typingSeat by remember { mutableStateOf<Int?>(null) }
     var text by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
-    LaunchedEffect(turns.size) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
+    // Also when the last turn grows (late translation, back-translation), so its bottom stays in view.
+    LaunchedEffect(turns.size, turns.lastOrNull()) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
 
     Column(Modifier.fillMaxSize().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (typingSeat == null) {
@@ -161,10 +166,12 @@ internal fun ListConversation(
                         contentColor = Color.White,
                     ),
                 ) {
-                    Text(
+                    // Shrinks to fit: with 3–4 people or a large text size the full label is too wide.
+                    BasicText(
                         if (listening) "■ ${s.stop}" else "${seat + 1} · 🎤 ${s.speak} · ${seatLangs[seat].nativeName}",
-                        fontSize = 16.sp,
+                        style = TextStyle(color = LocalContentColor.current),
                         maxLines = 1,
+                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 16.sp),
                     )
                 }
             }

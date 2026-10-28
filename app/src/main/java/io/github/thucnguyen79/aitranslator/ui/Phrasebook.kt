@@ -94,17 +94,19 @@ internal fun PhrasebookDialog(
                     }
                 }
                 HorizontalDivider()
-                LazyColumn(Modifier.weight(1f).fillMaxWidth()) {
+                // In the turned sheet the list is turned back upright, laid out in reverse and only its items are
+                // rotated: scrolling inside a 180° rotation flings the wrong way (see SeatPanel).
+                LazyColumn(Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it }, reverseLayout = flipped) {
                     items(phrases.filter { it.category == category }, key = { it.id }) { phrase ->
-                        Column(
-                            Modifier.fillMaxWidth().clickable { onPick(phrase) }.padding(vertical = 10.dp),
-                        ) {
-                            Text(phrase.texts[lang].orEmpty(), fontSize = 18.sp)
-                            if (otherLang != lang) {
-                                Text(phrase.texts[otherLang].orEmpty(), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        Column(Modifier.fillMaxWidth().let { if (flipped) it.rotate(180f) else it }) {
+                            Column(Modifier.fillMaxWidth().clickable { onPick(phrase) }.padding(vertical = 10.dp)) {
+                                Text(phrase.texts[lang].orEmpty(), fontSize = 18.sp)
+                                if (otherLang != lang) {
+                                    Text(phrase.texts[otherLang].orEmpty(), fontSize = 14.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
                             }
+                            HorizontalDivider()
                         }
-                        HorizontalDivider()
                     }
                 }
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {

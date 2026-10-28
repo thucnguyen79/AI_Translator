@@ -3,11 +3,13 @@ package io.github.thucnguyen79.aitranslator
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -27,6 +29,7 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -62,7 +65,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         val anyLanguageReady = Lang.entries.count { container.packs.isLanguageReady(it) } >= 2
 
@@ -74,30 +76,36 @@ class MainActivity : ComponentActivity() {
                 AppTheme.LIGHT -> false
                 AppTheme.DARK -> true
             }
-            val density = LocalDensity.current
-            // The text size setting scales on top of the phone's own font size.
-            CompositionLocalProvider(LocalDensity provides Density(density.density, density.fontScale * fontScale)) {
-                MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
-                    var tab by rememberSaveable { mutableIntStateOf(if (anyLanguageReady) 0 else 2) }
-                    Scaffold(
-                        bottomBar = {
-                            NavigationBar {
-                                listOf(
-                                    "💬" to R.string.tab_conversation,
-                                    "🕘" to R.string.tab_history,
-                                    "⬇" to R.string.tab_packs,
-                                    "ⓘ" to R.string.tab_about,
-                                ).forEachIndexed { i, (icon, label) ->
-                                    NavigationBarItem(
-                                        selected = tab == i,
-                                        onClick = { tab = i },
-                                        icon = { Text(icon) },
-                                        label = { Text(stringResource(label)) },
-                                    )
-                                }
+            // Status and navigation bar icons follow the app's theme, not only the phone's.
+            DisposableEffect(dark) {
+                val style = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT) { dark }
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+                onDispose {}
+            }
+            MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
+                var tab by rememberSaveable { mutableIntStateOf(if (anyLanguageReady) 0 else 2) }
+                Scaffold(
+                    bottomBar = {
+                        NavigationBar {
+                            listOf(
+                                "💬" to R.string.tab_conversation,
+                                "🕘" to R.string.tab_history,
+                                "⬇" to R.string.tab_packs,
+                                "ⓘ" to R.string.tab_about,
+                            ).forEachIndexed { i, (icon, label) ->
+                                NavigationBarItem(
+                                    selected = tab == i,
+                                    onClick = { tab = i },
+                                    icon = { Text(icon) },
+                                    label = { Text(stringResource(label)) },
+                                )
                             }
-                        },
-                    ) { inner ->
+                        }
+                    },
+                ) { inner ->
+                    // The text size setting scales the screens (on top of the phone's own font size), not the tab bar.
+                    val density = LocalDensity.current
+                    CompositionLocalProvider(LocalDensity provides Density(density.density, density.fontScale * fontScale)) {
                         // consumeWindowInsets: imePadding() below then only adds what the keyboard covers beyond the bars.
                         Box(Modifier.fillMaxSize().padding(inner).consumeWindowInsets(inner)) {
                             when (tab) {
@@ -108,8 +116,8 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
-                    MicPermissionDialog()
                 }
+                MicPermissionDialog()
             }
         }
     }

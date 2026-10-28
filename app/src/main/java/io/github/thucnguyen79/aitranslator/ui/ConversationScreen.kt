@@ -263,7 +263,8 @@ private fun SeatPanel(
     val ready = missing.isEmpty()
     var text by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
-    LaunchedEffect(turns.size) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
+    // Also when the last turn grows (late translation, back-translation), so its bottom stays in view.
+    LaunchedEffect(turns.size, turns.lastOrNull()) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
     var route by remember(lang) { mutableStateOf<TtsRoute?>(null) }
     LaunchedEffect(lang, voicesVersion) { route = runCatching { container.tts.route(lang) }.getOrNull() }
 
