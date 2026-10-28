@@ -189,7 +189,8 @@ không phụ thuộc vào URL nội bộ của bên thứ ba.
 
 ## 6. Giai đoạn 0 — Spike kiểm chứng (trước khi làm MVP)
 
-Mục tiêu: chốt mô hình dựa trên số liệu đo trên máy thật.
+Mục tiêu: chốt mô hình dựa trên số liệu đo trên máy thật. App thử nghiệm, script và tiêu chí đạt nằm trong
+[spike/README.md](../spike/README.md).
 
 | Hạng mục | Cách làm |
 |---|---|

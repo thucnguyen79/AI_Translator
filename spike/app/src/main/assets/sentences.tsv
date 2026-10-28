@@ -1,0 +1,101 @@
+id	category	vi	en	zh	ko	ja
+g01	chao_hoi	Xin chào, rất vui được gặp bạn.	Hello, nice to meet you.	你好，很高兴认识你。	안녕하세요, 만나서 반갑습니다.	こんにちは、はじめまして。
+g02	chao_hoi	Cảm ơn bạn rất nhiều.	Thank you very much.	非常感谢你。	정말 감사합니다.	どうもありがとうございます。
+g03	chao_hoi	Xin lỗi, bạn có nói được tiếng Anh không?	Excuse me, do you speak English?	不好意思，你会说英语吗？	실례합니다, 영어 할 줄 아세요?	すみません、英語を話せますか？
+g04	chao_hoi	Tôi đến từ Việt Nam.	I am from Vietnam.	我来自越南。	저는 베트남에서 왔어요.	私はベトナムから来ました。
+g05	chao_hoi	Bạn có thể nói chậm hơn được không?	Could you speak more slowly?	你可以说慢一点吗？	좀 더 천천히 말해 주시겠어요?	もう少しゆっくり話していただけますか？
+g06	chao_hoi	Tôi không hiểu.	I don't understand.	我听不懂。	이해가 안 돼요.	わかりません。
+g07	chao_hoi	Bạn tên là gì?	What is your name?	你叫什么名字？	이름이 뭐예요?	お名前は何ですか？
+g08	chao_hoi	Hẹn gặp lại bạn ngày mai.	See you tomorrow.	明天见。	내일 봬요.	また明日会いましょう。
+g09	chao_hoi	Bạn có thể chụp giúp chúng tôi một tấm ảnh không?	Could you take a photo of us?	可以帮我们拍张照片吗？	저희 사진 좀 찍어 주시겠어요?	私たちの写真を撮っていただけますか？
+g10	chao_hoi	Đây là lần đầu tiên tôi đến đây.	This is my first time here.	这是我第一次来这里。	여기는 처음 와 봐요.	ここに来るのは初めてです。
+g11	chao_hoi	Không sao đâu.	No problem.	没关系。	괜찮아요.	大丈夫です。
+g12	chao_hoi	Chúc bạn một ngày tốt lành.	Have a nice day.	祝你今天愉快。	좋은 하루 보내세요.	よい一日をお過ごしください。
+f01	an_uong	Cho tôi xem thực đơn được không?	Can I see the menu, please?	可以给我看一下菜单吗？	메뉴판 좀 볼 수 있을까요?	メニューを見せてもらえますか？
+f02	an_uong	Cho tôi một bàn bốn người.	A table for four, please.	请给我们一张四人桌。	네 명 앉을 자리 부탁드려요.	4人用のテーブルをお願いします。
+f03	an_uong	Món nào ở đây ngon nhất?	What is the best dish here?	这里什么菜最好吃？	여기서 뭐가 제일 맛있어요?	ここで一番おいしい料理は何ですか？
+f04	an_uong	Tôi không ăn được cay.	I can't eat spicy food.	我不能吃辣。	저는 매운 음식을 못 먹어요.	辛いものは食べられません。
+f05	an_uong	Tôi bị dị ứng với đậu phộng.	I am allergic to peanuts.	我对花生过敏。	저는 땅콩 알레르기가 있어요.	ピーナッツアレルギーがあります。
+f06	an_uong	Món này có thịt heo không?	Does this dish contain pork?	这道菜里有猪肉吗？	이 음식에 돼지고기가 들어가요?	この料理に豚肉は入っていますか？
+f07	an_uong	Cho tôi hai chai nước suối.	Two bottles of water, please.	请给我两瓶矿泉水。	생수 두 병 주세요.	ミネラルウォーターを2本ください。
+f08	an_uong	Tôi ăn chay.	I am vegetarian.	我吃素。	저는 채식주의자예요.	私はベジタリアンです。
+f09	an_uong	Làm ơn cho thêm một cái bát.	One more bowl, please.	请再给我一个碗。	그릇 하나 더 주세요.	お椀をもう一つください。
+f10	an_uong	Tính tiền giúp tôi.	The bill, please.	请帮我结账。	계산해 주세요.	お会計をお願いします。
+f11	an_uong	Có thể trả bằng thẻ tín dụng không?	Can I pay by credit card?	可以刷信用卡吗？	신용카드로 계산할 수 있어요?	クレジットカードで払えますか？
+f12	an_uong	Món này rất ngon.	This is delicious.	这个很好吃。	이거 정말 맛있어요.	これはとてもおいしいです。
+f13	an_uong	Cho tôi mang về.	I'd like it to go, please.	我要打包。	포장해 주세요.	持ち帰りでお願いします。
+f14	an_uong	Đồ ăn của tôi chưa ra.	My food hasn't come yet.	我的菜还没上。	제 음식이 아직 안 나왔어요.	私の料理がまだ来ていません。
+f15	an_uong	Cho tôi một ly cà phê sữa đá.	One iced coffee with milk, please.	请给我一杯冰奶咖啡。	아이스 밀크커피 한 잔 주세요.	アイスミルクコーヒーを一杯ください。
+f16	an_uong	Không cho đá nhé.	No ice, please.	请不要加冰。	얼음은 빼 주세요.	氷なしでお願いします。
+t01	di_lai	Làm ơn đưa tôi đến địa chỉ này.	Please take me to this address.	请带我去这个地址。	이 주소로 가 주세요.	この住所までお願いします。
+t02	di_lai	Đi đến sân bay mất bao lâu?	How long does it take to get to the airport?	去机场要多长时间？	공항까지 얼마나 걸려요?	空港までどのくらいかかりますか？
+t03	di_lai	Đi taxi đến trung tâm hết bao nhiêu tiền?	How much is a taxi to the city center?	打车到市中心要多少钱？	시내까지 택시비가 얼마예요?	市の中心までタクシーでいくらですか？
+t04	di_lai	Làm ơn dừng ở đây.	Please stop here.	请在这里停车。	여기서 세워 주세요.	ここで止めてください。
+t05	di_lai	Ga tàu điện ngầm gần nhất ở đâu?	Where is the nearest subway station?	最近的地铁站在哪里？	가장 가까운 지하철역이 어디예요?	一番近い地下鉄の駅はどこですか？
+t06	di_lai	Tôi muốn mua hai vé đi Busan.	I'd like two tickets to Busan.	我想买两张去釜山的票。	부산 가는 표 두 장 주세요.	釜山行きの切符を2枚ください。
+t07	di_lai	Xe buýt này có đi đến bảo tàng không?	Does this bus go to the museum?	这辆公交车去博物馆吗？	이 버스 박물관에 가요?	このバスは博物館に行きますか？
+t08	di_lai	Chuyến tàu tiếp theo mấy giờ chạy?	What time does the next train leave?	下一班火车几点出发？	다음 기차는 몇 시에 출발해요?	次の電車は何時に出ますか？
+t09	di_lai	Tôi phải đổi tàu ở đâu?	Where do I need to change trains?	我应该在哪里换乘？	어디서 갈아타야 해요?	どこで乗り換えればいいですか？
+t10	di_lai	Làm ơn bật đồng hồ tính tiền.	Please turn on the meter.	请打表。	미터기 켜 주세요.	メーターを使ってください。
+t11	di_lai	Tôi bị lỡ chuyến bay.	I missed my flight.	我错过了航班。	비행기를 놓쳤어요.	飛行機に乗り遅れました。
+t12	di_lai	Quầy làm thủ tục của Vietnam Airlines ở đâu?	Where is the Vietnam Airlines check-in counter?	越南航空的值机柜台在哪里？	베트남항공 체크인 카운터가 어디예요?	ベトナム航空のチェックインカウンターはどこですか？
+t13	di_lai	Tôi muốn thuê một chiếc xe máy trong ba ngày.	I want to rent a motorbike for three days.	我想租一辆摩托车，租三天。	오토바이를 삼 일 동안 빌리고 싶어요.	バイクを三日間借りたいです。
+t14	di_lai	Đi chậm thôi, tôi hơi say xe.	Please slow down, I feel a bit carsick.	请开慢一点，我有点晕车。	천천히 가 주세요, 멀미가 좀 나요.	ゆっくり走ってください、少し車酔いしています。
+h01	khach_san	Tôi đã đặt phòng dưới tên Nguyễn Văn An.	I have a reservation under the name Nguyen Van An.	我用阮文安的名字预订了房间。	응우옌 반 안 이름으로 예약했어요.	グエン・ヴァン・アンの名前で予約しています。
+h02	khach_san	Mấy giờ trả phòng?	What time is check-out?	几点退房？	체크아웃은 몇 시예요?	チェックアウトは何時ですか？
+h03	khach_san	Mật khẩu wifi là gì?	What is the Wi-Fi password?	Wi-Fi密码是多少？	와이파이 비밀번호가 뭐예요?	Wi-Fiのパスワードは何ですか？
+h04	khach_san	Điều hòa trong phòng tôi không hoạt động.	The air conditioner in my room isn't working.	我房间的空调坏了。	제 방 에어컨이 작동하지 않아요.	部屋のエアコンが動きません。
+h05	khach_san	Bữa sáng phục vụ từ mấy giờ?	What time is breakfast served?	早餐几点开始供应？	아침 식사는 몇 시부터예요?	朝食は何時からですか？
+h06	khach_san	Tôi có thể gửi hành lý ở đây không?	Can I leave my luggage here?	我可以把行李寄存在这里吗？	여기에 짐을 맡겨도 될까요?	ここに荷物を預けてもいいですか？
+h07	khach_san	Làm ơn cho thêm một chiếc khăn tắm.	Could I have an extra towel, please?	请再给我一条浴巾。	수건 하나 더 주세요.	タオルをもう一枚お願いします。
+h08	khach_san	Tôi muốn ở thêm một đêm.	I'd like to stay one more night.	我想多住一晚。	하루 더 묵고 싶어요.	もう一泊したいです。
+h09	khach_san	Phòng có nhìn ra biển không?	Does the room have a sea view?	房间有海景吗？	방에서 바다가 보여요?	部屋から海が見えますか？
+h10	khach_san	Tôi để quên chìa khóa trong phòng.	I left my key in the room.	我把钥匙忘在房间里了。	열쇠를 방에 두고 나왔어요.	鍵を部屋に置き忘れました。
+h11	khach_san	Làm ơn gọi giúp tôi một chiếc taxi.	Could you call a taxi for me?	请帮我叫一辆出租车。	택시 좀 불러 주세요.	タクシーを呼んでいただけますか？
+h12	khach_san	Phòng bên cạnh rất ồn.	The room next door is very noisy.	隔壁房间很吵。	옆방이 너무 시끄러워요.	隣の部屋がとてもうるさいです。
+s01	mua_sam	Cái này giá bao nhiêu?	How much is this?	这个多少钱？	이거 얼마예요?	これはいくらですか？
+s02	mua_sam	Có thể giảm giá một chút không?	Can you give me a small discount?	可以便宜一点吗？	좀 깎아 주실 수 있어요?	少し安くしてもらえますか？
+s03	mua_sam	Có cỡ lớn hơn không?	Do you have a bigger size?	有大一号的吗？	더 큰 사이즈 있어요?	もっと大きいサイズはありますか？
+s04	mua_sam	Tôi có thể mặc thử không?	Can I try it on?	我可以试穿吗？	입어 봐도 돼요?	試着してもいいですか？
+s05	mua_sam	Tôi chỉ xem thôi.	I'm just looking.	我只是看看。	그냥 구경하는 거예요.	見ているだけです。
+s06	mua_sam	Có màu khác không?	Do you have it in another color?	有别的颜色吗？	다른 색깔 있어요?	他の色はありますか？
+s07	mua_sam	Tôi lấy cái này.	I'll take this one.	我要这个。	이걸로 할게요.	これにします。
+s08	mua_sam	Làm ơn gói quà giúp tôi.	Could you gift-wrap it, please?	请帮我包装成礼物。	선물 포장해 주세요.	プレゼント用に包んでください。
+s09	mua_sam	Ở đây có hoàn thuế cho khách du lịch không?	Do you offer tax refunds for tourists?	这里可以给游客退税吗？	여기 관광객 택스 리펀드 돼요?	ここで観光客の免税手続きはできますか？
+s10	mua_sam	Chợ đêm mở cửa đến mấy giờ?	What time does the night market close?	夜市开到几点？	야시장은 몇 시까지 해요?	ナイトマーケットは何時までですか？
+s11	mua_sam	Cho tôi một cái túi.	Can I have a bag, please?	请给我一个袋子。	봉투 하나 주세요.	袋を一つください。
+s12	mua_sam	Tôi muốn đổi tiền.	I'd like to exchange money.	我想换钱。	환전하고 싶어요.	両替したいです。
+s13	mua_sam	Ở gần đây có máy ATM không?	Is there an ATM nearby?	附近有取款机吗？	근처에 ATM 있어요?	近くにATMはありますか？
+s14	mua_sam	Tôi muốn trả lại món hàng này.	I'd like to return this item.	我想退这件商品。	이 물건 환불하고 싶어요.	この商品を返品したいです。
+d01	hoi_duong	Nhà vệ sinh ở đâu?	Where is the restroom?	洗手间在哪里？	화장실이 어디예요?	トイレはどこですか？
+d02	hoi_duong	Làm sao để đi đến khách sạn này?	How do I get to this hotel?	怎么去这家酒店？	이 호텔에 어떻게 가요?	このホテルへはどうやって行けばいいですか？
+d03	hoi_duong	Đi bộ đến đó có xa không?	Is it far to walk there?	走路去那里远吗？	거기까지 걸어가기 멀어요?	そこまで歩くと遠いですか？
+d04	hoi_duong	Rẽ trái hay rẽ phải?	Do I turn left or right?	左转还是右转？	왼쪽으로 가요, 오른쪽으로 가요?	左に曲がりますか、右に曲がりますか？
+d05	hoi_duong	Bạn có thể chỉ trên bản đồ giúp tôi không?	Could you show me on the map?	你能在地图上指给我看吗？	지도에서 좀 보여 주시겠어요?	地図で教えていただけますか？
+d06	hoi_duong	Tôi bị lạc đường.	I am lost.	我迷路了。	길을 잃었어요.	道に迷いました。
+d07	hoi_duong	Gần đây có hiệu thuốc nào không?	Is there a pharmacy near here?	这附近有药店吗？	이 근처에 약국 있어요?	この近くに薬局はありますか？
+d08	hoi_duong	Lối vào bảo tàng ở đâu?	Where is the entrance to the museum?	博物馆的入口在哪里？	박물관 입구가 어디예요?	博物館の入り口はどこですか？
+d09	hoi_duong	Cứ đi thẳng khoảng năm phút.	Go straight for about five minutes.	一直往前走大约五分钟。	오 분 정도 쭉 가세요.	まっすぐ五分ほど行ってください。
+d10	hoi_duong	Điểm tham quan này mấy giờ mở cửa?	What time does this attraction open?	这个景点几点开门？	이 관광지는 몇 시에 열어요?	この観光地は何時に開きますか？
+d11	hoi_duong	Vé vào cửa bao nhiêu tiền một người?	How much is the entrance fee per person?	门票一个人多少钱？	입장료가 한 사람에 얼마예요?	入場料は一人いくらですか？
+d12	hoi_duong	Ở đây có được chụp ảnh không?	Is photography allowed here?	这里可以拍照吗？	여기서 사진 찍어도 돼요?	ここで写真を撮ってもいいですか？
+e01	khan_cap	Làm ơn giúp tôi!	Please help me!	请帮帮我！	도와주세요!	助けてください！
+e02	khan_cap	Hãy gọi xe cấp cứu.	Please call an ambulance.	请叫救护车。	구급차를 불러 주세요.	救急車を呼んでください。
+e03	khan_cap	Tôi bị mất hộ chiếu.	I lost my passport.	我的护照丢了。	여권을 잃어버렸어요.	パスポートをなくしました。
+e04	khan_cap	Tôi bị móc túi.	I was pickpocketed.	我被扒窃了。	소매치기를 당했어요.	スリに遭いました。
+e05	khan_cap	Tôi cảm thấy không khỏe.	I don't feel well.	我觉得不舒服。	몸이 안 좋아요.	気分が悪いです。
+e06	khan_cap	Bệnh viện gần nhất ở đâu?	Where is the nearest hospital?	最近的医院在哪里？	가장 가까운 병원이 어디예요?	一番近い病院はどこですか？
+e07	khan_cap	Đồn cảnh sát ở đâu?	Where is the police station?	警察局在哪里？	경찰서가 어디예요?	警察署はどこですか？
+e08	khan_cap	Tôi cần liên lạc với Đại sứ quán Việt Nam.	I need to contact the Vietnamese embassy.	我需要联系越南大使馆。	베트남 대사관에 연락해야 해요.	ベトナム大使館に連絡する必要があります。
+e09	khan_cap	Con tôi bị sốt cao.	My child has a high fever.	我的孩子发高烧了。	아이가 열이 많이 나요.	子どもが高熱を出しています。
+e10	khan_cap	Tôi bị đau bụng từ tối qua.	I've had a stomachache since last night.	我从昨晚开始肚子疼。	어젯밤부터 배가 아파요.	昨夜からお腹が痛いです。
+c01	giao_tiep	Bạn có thể viết ra giấy giúp tôi không?	Could you write it down for me?	你可以帮我写下来吗？	종이에 좀 써 주시겠어요?	紙に書いていただけますか？
+c02	giao_tiep	Ở đây có wifi miễn phí không?	Is there free Wi-Fi here?	这里有免费Wi-Fi吗？	여기 무료 와이파이 있어요?	ここに無料Wi-Fiはありますか？
+c03	giao_tiep	Thời tiết hôm nay thế nào?	What's the weather like today?	今天天气怎么样？	오늘 날씨 어때요?	今日の天気はどうですか？
+c04	giao_tiep	Bạn có thể giới thiệu một quán ăn địa phương ngon không?	Can you recommend a good local restaurant?	你能推荐一家好吃的本地餐馆吗？	맛있는 현지 식당 좀 추천해 주시겠어요?	おいしい地元のレストランを教えてもらえますか？
+c05	giao_tiep	Chúng tôi đi du lịch ở đây một tuần.	We are traveling here for a week.	我们在这里旅行一周。	저희는 여기서 일주일 동안 여행해요.	私たちはここを一週間旅行しています。
+c06	giao_tiep	Tôi có thể sạc điện thoại ở đâu?	Where can I charge my phone?	我在哪里可以给手机充电？	휴대폰을 어디서 충전할 수 있어요?	どこで携帯を充電できますか？
+c07	giao_tiep	Bây giờ là mấy giờ?	What time is it now?	现在几点了？	지금 몇 시예요?	今何時ですか？
+c08	giao_tiep	Bạn đợi tôi một chút nhé.	Please wait for me a moment.	请等我一下。	잠깐만 기다려 주세요.	少々お待ちください。
+c09	giao_tiep	Tôi sẽ quay lại sau mười phút.	I will be back in ten minutes.	我十分钟后回来。	십 분 후에 돌아올게요.	十分後に戻ります。
+c10	giao_tiep	Rất cảm ơn sự giúp đỡ của bạn.	Thank you so much for your help.	非常感谢你的帮助。	도와주셔서 정말 감사합니다.	助けていただいて本当にありがとうございます。

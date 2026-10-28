@@ -1,14 +1,14 @@
 # Android / Gradle
 *.iml
 .gradle/
-/local.properties
-/.idea/
+.kotlin/
+local.properties
+.idea/
 .DS_Store
-/build/
-/captures/
+build/
+captures/
 .externalNativeBuild/
 .cxx/
-*/build/
 *.apk
 *.aab
 *.ap_
@@ -18,6 +18,11 @@
 
 # Downloaded / converted models (distributed as language packs, not in git)
 /models/
+/spike/models/
+/spike/app/libs/
+# Spike measurements and voice recordings stay local (recordings are personal data)
+/spike/results/
+/spike/testset/audio/
 *.onnx
 *.bin
 *.gguf

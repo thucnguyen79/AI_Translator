@@ -17,5 +17,5 @@ trực tiếp qua **một điện thoại dùng chung**.
 
 ## Trạng thái
 
-Đang ở giai đoạn phân tích & thiết kế. Bước tiếp theo: **Giai đoạn 0 — spike** đo chất lượng và độ trễ của các mô hình
+Đang ở **Giai đoạn 0 — spike**: app thử nghiệm trong [spike/](spike/README.md) đo chất lượng và độ trễ của các mô hình
 offline trên điện thoại thật.
