@@ -195,6 +195,45 @@ class ConversationEngineTest {
         assertEquals(setOf(Lang.EN, Lang.JA), engine.turns.value.single().translations.keys)
     }
 
+    @Test fun phrasesUseTheirOwnTranslations() = runTest {
+        val engine = engine()
+        engine.seats = listOf(Seat(0, Lang.VI), Seat(1, Lang.EN), Seat(2, Lang.KO))
+        engine.submitPhrase(0, mapOf(Lang.VI to "Nhà vệ sinh ở đâu?", Lang.EN to "Where is the restroom?"))
+        advanceUntilIdle()
+
+        val turn = engine.turns.value.single()
+        assertTrue(turn.phrase)
+        assertEquals("Where is the restroom?", turn.textIn(Lang.EN))
+        // Korean was not in the phrasebook entry, so it falls back to the model.
+        assertEquals(listOf(Lang.VI to Lang.KO), translator.calls)
+    }
+
+    @Test fun editingASentenceTranslatesItAgain() = runTest {
+        val engine = engine()
+        engine.startListening(0)
+        advanceUntilIdle()
+        val id = engine.turns.value.single().id
+
+        engine.editTurn(id, "xin lỗi")
+        advanceUntilIdle()
+
+        val turn = engine.turns.value.single()
+        assertTrue(turn.edited)
+        assertEquals("xin lỗi", turn.source)
+        assertEquals("en:xin lỗi", turn.textIn(Lang.EN))
+    }
+
+    @Test fun backTranslationsComeAfterSpeaking() = runTest {
+        val engine = engine()
+        engine.backTranslate = true
+        engine.startListening(0)
+        advanceUntilIdle()
+
+        val turn = engine.turns.value.single()
+        assertEquals(mapOf(Lang.EN to "vi:en:xin chào"), turn.backTranslations)
+        assertEquals(listOf(Lang.VI to Lang.EN, Lang.EN to Lang.VI), translator.calls)
+    }
+
     @Test fun failuresAreReported() = runTest {
         val engine = ConversationEngine(
             audio,

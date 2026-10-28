@@ -18,6 +18,9 @@ class SystemTts(context: Context) : SpeechSynthesizer, AutoCloseable {
     private val done = ConcurrentHashMap<String, CompletableDeferred<Unit>>()
     private val tts = TextToSpeech(context.applicationContext) { status -> ready.complete(status == TextToSpeech.SUCCESS) }
 
+    /** Speaking rate, 1.0 = normal. */
+    @Volatile var rate = 1f
+
     init {
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String) = Unit
@@ -51,6 +54,7 @@ class SystemTts(context: Context) : SpeechSynthesizer, AutoCloseable {
         if (!awaitReady()) return
         val voice = offlineVoice(lang)
         if (voice != null) tts.voice = voice else tts.language = lang.locale
+        tts.setSpeechRate(rate)
         val id = UUID.randomUUID().toString()
         val finished = CompletableDeferred<Unit>().also { done[id] = it }
         tts.speak(text, TextToSpeech.QUEUE_FLUSH, Bundle(), id)

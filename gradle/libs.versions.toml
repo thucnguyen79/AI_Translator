@@ -19,6 +19,8 @@ onnxruntime = "1.28.0"
 # Fetched from GitHub Releases into third_party/m2 by tools/deps.py (static-link build, see README)
 sherpaOnnx = "2.0.1"
 junit4 = "4.13.2"
+# org.json is part of Android but stubbed in local unit tests
+orgJson = "20240303"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -38,6 +40,7 @@ commons-compress = { group = "org.apache.commons", name = "commons-compress", ve
 onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version.ref = "onnxruntime" }
 sherpa-onnx = { group = "com.k2fsa.sherpa.onnx", name = "sherpa-onnx-android", version.ref = "sherpaOnnx" }
 junit4 = { group = "junit", name = "junit", version.ref = "junit4" }
+org-json = { group = "org.json", name = "json", version.ref = "orgJson" }
 
 # Build logic
 android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "agp" }

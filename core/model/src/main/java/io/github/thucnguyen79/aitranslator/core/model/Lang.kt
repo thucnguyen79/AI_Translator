@@ -11,5 +11,7 @@ enum class Lang(val code: String, val nativeName: String, val locale: Locale) {
 
     companion object {
         fun of(code: String): Lang = entries.first { it.code == code }
+
+        fun find(code: String): Lang? = entries.firstOrNull { it.code == code }
     }
 }

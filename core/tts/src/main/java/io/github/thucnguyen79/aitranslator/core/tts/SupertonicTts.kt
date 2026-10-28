@@ -22,6 +22,9 @@ class SupertonicTts(dir: File, threads: Int = 2) : SpeechSynthesizer, AutoClosea
     private val tts: OfflineTts
     @Volatile private var stopRequested = false
 
+    /** Speaking rate, 1.0 = normal. */
+    @Volatile var speed = 1f
+
     init {
         fun f(name: String) = File(dir, name).absolutePath
         tts = OfflineTts(
@@ -59,7 +62,7 @@ class SupertonicTts(dir: File, threads: Int = 2) : SpeechSynthesizer, AutoClosea
             .build()
         try {
             track.play()
-            val config = GenerationConfig(sid = 0, speed = 1.0f, numSteps = 5, extra = mapOf("lang" to lang.code))
+            val config = GenerationConfig(sid = 0, speed = speed, numSteps = 5, extra = mapOf("lang" to lang.code))
             tts.generateWithConfigAndCallback(text, config, Sink(track))
             Unit
         } finally {

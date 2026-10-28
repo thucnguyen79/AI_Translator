@@ -26,17 +26,22 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.res.stringResource
 import androidx.core.content.ContextCompat
 import io.github.thucnguyen79.aitranslator.core.model.Lang
 import io.github.thucnguyen79.aitranslator.ui.AboutScreen
 import io.github.thucnguyen79.aitranslator.ui.ConversationScreen
+import io.github.thucnguyen79.aitranslator.ui.HistoryScreen
 import io.github.thucnguyen79.aitranslator.ui.PacksScreen
 
 class MainActivity : ComponentActivity() {
@@ -62,36 +67,49 @@ class MainActivity : ComponentActivity() {
         val anyLanguageReady = Lang.entries.count { container.packs.isLanguageReady(it) } >= 2
 
         setContent {
-            MaterialTheme(colorScheme = if (isSystemInDarkTheme()) darkColorScheme() else lightColorScheme()) {
-                var tab by rememberSaveable { mutableIntStateOf(if (anyLanguageReady) 0 else 1) }
-                Scaffold(
-                    bottomBar = {
-                        NavigationBar {
-                            listOf(
-                                "💬" to R.string.tab_conversation,
-                                "⬇" to R.string.tab_packs,
-                                "ⓘ" to R.string.tab_about,
-                            ).forEachIndexed { i, (icon, label) ->
-                                NavigationBarItem(
-                                    selected = tab == i,
-                                    onClick = { tab = i },
-                                    icon = { Text(icon) },
-                                    label = { Text(stringResource(label)) },
-                                )
+            val theme by container.theme.collectAsStateWithLifecycle()
+            val fontScale by container.fontScale.collectAsStateWithLifecycle()
+            val dark = when (theme) {
+                AppTheme.SYSTEM -> isSystemInDarkTheme()
+                AppTheme.LIGHT -> false
+                AppTheme.DARK -> true
+            }
+            val density = LocalDensity.current
+            // The text size setting scales on top of the phone's own font size.
+            CompositionLocalProvider(LocalDensity provides Density(density.density, density.fontScale * fontScale)) {
+                MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
+                    var tab by rememberSaveable { mutableIntStateOf(if (anyLanguageReady) 0 else 2) }
+                    Scaffold(
+                        bottomBar = {
+                            NavigationBar {
+                                listOf(
+                                    "💬" to R.string.tab_conversation,
+                                    "🕘" to R.string.tab_history,
+                                    "⬇" to R.string.tab_packs,
+                                    "ⓘ" to R.string.tab_about,
+                                ).forEachIndexed { i, (icon, label) ->
+                                    NavigationBarItem(
+                                        selected = tab == i,
+                                        onClick = { tab = i },
+                                        icon = { Text(icon) },
+                                        label = { Text(stringResource(label)) },
+                                    )
+                                }
+                            }
+                        },
+                    ) { inner ->
+                        // consumeWindowInsets: imePadding() below then only adds what the keyboard covers beyond the bars.
+                        Box(Modifier.fillMaxSize().padding(inner).consumeWindowInsets(inner)) {
+                            when (tab) {
+                                0 -> ConversationScreen(container, withMic = ::withMicPermission, openPacks = { tab = 2 })
+                                1 -> HistoryScreen(container)
+                                2 -> PacksScreen(container)
+                                else -> AboutScreen(container)
                             }
                         }
-                    },
-                ) { inner ->
-                    // consumeWindowInsets: imePadding() below then only adds what the keyboard covers beyond the bars.
-                    Box(Modifier.fillMaxSize().padding(inner).consumeWindowInsets(inner)) {
-                        when (tab) {
-                            0 -> ConversationScreen(container, withMic = ::withMicPermission, openPacks = { tab = 1 })
-                            1 -> PacksScreen(container)
-                            else -> AboutScreen(container)
-                        }
                     }
+                    MicPermissionDialog()
                 }
-                MicPermissionDialog()
             }
         }
     }

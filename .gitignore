@@ -34,3 +34,6 @@ captures/
 
 # Local tooling
 .claude/settings.local.json
+
+# Release signing (docs/release.md)
+keystore.properties

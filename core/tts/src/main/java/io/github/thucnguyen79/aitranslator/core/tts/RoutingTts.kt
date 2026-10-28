@@ -20,6 +20,9 @@ class RoutingTts(
     private val offlineCache = ConcurrentHashMap<Lang, Boolean>()
     @Volatile private var current: SpeechSynthesizer? = null
 
+    /** Speaking rate for every voice, 1.0 = normal (F5.3). */
+    @Volatile var rate = 1f
+
     suspend fun route(lang: Lang): TtsRoute {
         val offline = offlineCache.getOrPut(lang) { system.hasOfflineVoice(lang) }
         return when {
@@ -37,6 +40,8 @@ class RoutingTts(
             TtsRoute.SUPERTONIC -> supertonic() ?: system
             else -> system
         }
+        system.rate = rate
+        (engine as? SupertonicTts)?.speed = rate
         current = engine
         try {
             engine.speak(text, lang)

@@ -40,7 +40,7 @@
     <string name="layout_face">Face to face</string>
     <string name="layout_face_desc">Phone between two people, top half turned to the person opposite</string>
     <string name="layout_list">Pass the phone</string>
-    <string name="layout_list_desc">One chat list, pass the phone back and forth</string>
+    <string name="layout_list_desc">One chat list for 2–4 people, pass the phone around</string>
     <string name="diagnostics_title">Diagnostics</string>
     <string name="diagnostics_desc">Show recognition and translation times under each sentence</string>
     <string name="models_licences">Models &amp; licences</string>
@@ -56,4 +56,35 @@
     <string name="mic_denied_title">Microphone is off</string>
     <string name="mic_denied_message">Turn on microphone access for AI Translator in Settings to speak. You can still type sentences.</string>
     <string name="open_settings">Open settings</string>
+    <!-- History -->
+    <string name="tab_history">History</string>
+    <string name="history_private">Private mode</string>
+    <string name="history_private_desc">Do not save conversations on this phone</string>
+    <string name="history_search">Search conversations</string>
+    <string name="history_empty">No saved conversations yet. Conversations are saved automatically (text only, never audio).</string>
+    <string name="history_no_match">Nothing found</string>
+    <string name="history_delete_all">Delete all</string>
+    <string name="history_delete_all_title">Delete all conversations?</string>
+    <string name="history_delete_title">Delete this conversation?</string>
+    <string name="history_delete_message">This cannot be undone.</string>
+    <string name="history_share">Share</string>
+    <string name="history_back">Back</string>
+    <plurals name="history_sentences">
+        <item quantity="one">%1$d sentence</item>
+        <item quantity="other">%1$d sentences</item>
+    </plurals>
+
+    <!-- Settings (Info tab) -->
+    <string name="seats_title">People (pass the phone)</string>
+    <string name="back_translate_title">Back-translation check</string>
+    <string name="back_translate_desc">Under your sentence, show what the other person read translated back into your language</string>
+    <string name="speech_rate_title">Reading speed</string>
+    <string name="speech_rate_slow">Slow</string>
+    <string name="speech_rate_normal">Normal</string>
+    <string name="speech_rate_fast">Fast</string>
+    <string name="font_size_title">Text size</string>
+    <string name="theme_title">Theme</string>
+    <string name="theme_system">Like the phone</string>
+    <string name="theme_light">Light</string>
+    <string name="theme_dark">Dark</string>
 </resources>

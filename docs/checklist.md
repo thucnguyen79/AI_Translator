@@ -13,7 +13,7 @@
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
 | 2 — MVP (2 người) | ✅ Xong | Đủ các mục MVP, đã thử trên máy; còn vài trường hợp chưa tái hiện được (⚠️) |
-| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | ⬜ Chưa bắt đầu | Một số phần đã có sẵn trong engine |
+| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Đã code phần lớn tính năng v1 (⚠️ chưa thử trên máy); còn F2.6, F3.2, F3.4, F3.5, F6.2, phát hành |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
 ## Giai đoạn 0 — Spike ([spike/README.md](../spike/README.md))
@@ -38,10 +38,10 @@
 - [x] Danh mục gói sinh tự động (`tools/gen_packs.py`), SHA-256 lấy từ nơi phát hành
 - [x] Tải gói: tải tiếp khi rớt mạng, kiểm SHA-256, giải nén an toàn, cài lần lượt có hàng đợi
 - [x] Engine hội thoại: khoá lượt, dịch một-sang-nhiều, ngắt lời, nhập phím, nghe lại
-- [x] 23 unit test (engine, gói, dấu câu); GitHub Actions: test + APK debug
+- [x] 33 unit test (engine, gói, dấu câu, lịch sử); GitHub Actions: test + APK debug
 - [x] Kiểm chứng trên máy thật: tải gói vi + en, hội thoại, cuộn ở nửa xoay
 - [x] Tải gói chạy nền khi rời app (foreground service, xem F8.2)
-- [ ] Ký bản release (keystore riêng) — hiện release dùng khoá debug
+- [ ] Ký bản release 🟡 — cấu hình xong (`keystore.properties` hoặc biến môi trường, xem [release.md](release.md)); 👤 cần tạo khoá và cất giữ
 
 ## Giai đoạn 2 — MVP
 
@@ -82,7 +82,7 @@
 - [x] F8.4 Xoá gói
 
 ### F9. Lịch sử
-- [ ] F9.3 Xoá hội thoại 🟡 — có nút xoá hội thoại đang hiển thị (kèm xác nhận, chỉ ở nửa của người cầm máy); xoá phiên đã lưu / xoá tất cả chờ F9.1 (v1)
+- [x] F9.3 Xoá hội thoại: nút 🗑 làm trống màn hình (bản lưu vẫn ở Lịch sử); xoá từng phiên / xoá tất cả trong tab Lịch sử — ⚠️ chưa thử trên máy
 
 ### F10. Cài đặt & chẩn đoán
 - [x] F10.1 Giao diện vi + en: chuỗi trong `strings.xml` (tiếng Anh mặc định, `values-vi` tiếng Việt, theo ngôn ngữ máy); hội thoại theo ngôn ngữ từng ghế (5 thứ tiếng) — thử trên máy ✓ (máy để tiếng Anh → giao diện tiếng Anh)
@@ -97,17 +97,18 @@
 - [x] F4.3 Dịch qua tiếng Anh cho các cặp không trực tiếp
 - [x] F4.4 Một câu dịch sang mọi ngôn ngữ khác trong phiên
 - [ ] F3.1 / F4.2 zh, ko, ja 🟡 — đã nối trong app, gói tải được; **chưa** thử trên máy thật
-- [ ] F1.1 / F6.2 3–4 ghế (engine hỗ trợ; thiếu giao diện)
+- [x] F1.1 3–4 người ở bố cục "Chuyền tay" (chọn số người trong tab Thông tin; mặt đối mặt luôn 2 người) — ⚠️ chưa thử trên máy
+- [ ] F6.2 Bố cục 3–4 vùng theo hướng ngồi (chia màn hình 4 phía)
 - [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
-- [ ] F1.3 Màu & tên ghế
+- [ ] F1.3 Màu & tên ghế 🟡 — mỗi người một màu + số thứ tự (nút nói, bong bóng, lịch sử); chưa đặt tên riêng — ⚠️ chưa thử trên máy
 - [ ] F2.6 Chế độ rảnh tay · F3.2 Chữ tạm thời · F3.4 Nhận diện ngôn ngữ nói · F3.5 Mô hình theo cấu hình máy
-- [ ] F4.5 Dịch ngược để kiểm tra
-- [ ] F5.3 Tốc độ đọc, chọn giọng
-- [ ] F6.5 Sửa câu nhận dạng sai rồi dịch lại
-- [ ] F7.2 Bộ cụm từ du lịch soạn sẵn (ưu tiên cao: cả 2 bộ dịch yếu với văn nói du lịch)
-- [ ] F9.x Lịch sử, tìm kiếm, xuất file, chế độ riêng tư
-- [ ] F10.2 Cỡ chữ, chế độ tối
-- [ ] Phát hành Google Play (chính sách quyền riêng tư, ảnh chụp, ký release)
+- [x] F4.5 Dịch ngược để kiểm tra: bật trong tab Thông tin, hiện "↩ Dịch ngược: …" dưới câu của người nói, chạy sau khi đọc xong — ⚠️ chưa thử trên máy
+- [ ] F5.3 Tốc độ đọc, chọn giọng 🟡 — có tốc độ Chậm/Bình thường/Nhanh (giọng máy + Supertonic); chưa chọn giọng — ⚠️ chưa thử trên máy
+- [x] F6.5 Sửa câu nhận dạng sai rồi dịch lại: nút "✎ Sửa" dưới câu của mình (Chuyền tay: nhấn giữ hoặc ✎); hộp sửa quay về người nói — ⚠️ chưa thử trên máy
+- [x] F7.2 Bộ cụm từ du lịch: 100 câu × 5 thứ tiếng, 8 chủ đề, nút "📖 Câu mẫu" mỗi nửa (quay về đúng người), dùng bản dịch soạn sẵn, không cần gói ngôn ngữ — ⚠️ chưa thử trên máy; 👤 người bản ngữ nên rà câu zh/ko/ja
+- [x] F9.1 Tự lưu phiên (chỉ chữ, JSON trong bộ nhớ riêng của app) · F9.2 xem & tìm (cả trong bản dịch) · F9.4 chia sẻ dạng chữ song ngữ · F9.5 chế độ riêng tư — tab Lịch sử — ⚠️ chưa thử trên máy
+- [x] F10.2 Cỡ chữ (4 mức, nhân thêm trên cỡ chữ của máy) & giao diện Theo máy/Sáng/Tối — ⚠️ chưa thử trên máy
+- [ ] Phát hành Google Play 🟡 — có [chính sách quyền riêng tư](privacy-policy.md) (en + vi) và [hướng dẫn phát hành](release.md); 👤 còn tạo khoá ký, đăng chính sách lên web, ảnh chụp màn hình, khai báo trên Play Console
 
 ## Lỗi & tồn đọng kỹ thuật
 
@@ -135,10 +136,11 @@
 
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-1. 👤 Thử các mục còn ⚠️: hỏi quyền micro (cài mới app), dùng dữ liệu di động khi tải, máy thiếu giọng offline
-2. v1: F1.1/F6.2 3–4 ghế · F7.2 cụm từ du lịch · F9.x lưu lịch sử & xuất file
-3. Phát hành: ký release, kiểm tra kích thước, chính sách quyền riêng tư
-4. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
+1. Thử trên máy các mục v1 vừa làm (⚠️): câu mẫu, sửa câu, dịch ngược, lịch sử, 3–4 người, cỡ chữ/giao diện, tốc độ đọc
+2. 👤 Thử các mục ⚠️ cũ: hỏi quyền micro (cài mới app), dùng dữ liệu di động khi tải, máy thiếu giọng offline
+3. Phát hành: 👤 tạo khoá ký, kiểm tra kích thước bản release, ảnh chụp màn hình
+4. Còn lại của v1: F6.2 bố cục 4 phía · F2.6 rảnh tay · F3.4 nhận diện ngôn ngữ nói (cần thêm mô hình ~75 MB) · F3.2 chữ tạm thời
+5. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
 
 ## Nhật ký cập nhật
 
@@ -150,3 +152,4 @@
 | 2026-10-28 | `3552b6c` | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |
 | 2026-10-28 | `a226e88` | F2.1, F2.5, F5.1, F5.4, F6.3, F8.2 (Wi-Fi, dung lượng, tải nền), F10.1 song ngữ — chưa thử trên máy vì mất kết nối |
 | 2026-10-28 | `f358c16` | Thử trên máy các mục MVP mới; sửa crash khi tải gói, hàng chọn ngôn ngữ ở nửa trên; thêm route TTS vào Chẩn đoán |
+| 2026-10-28 | _(commit này)_ | v1: F7.2 câu mẫu, F6.5 sửa câu, F4.5 dịch ngược, F9 lịch sử, F5.3 tốc độ đọc, F10.2 cỡ chữ & giao diện, F1.1 3–4 người, F1.3 màu ghế; cấu hình ký release, chính sách quyền riêng tư — chưa thử trên máy (máy chưa cắm) |

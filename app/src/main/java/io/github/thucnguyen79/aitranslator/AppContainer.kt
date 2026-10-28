@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.core.content.ContextCompat
 import io.github.thucnguyen79.aitranslator.core.engine.ConversationEngine
 import io.github.thucnguyen79.aitranslator.core.engine.Seat
+import io.github.thucnguyen79.aitranslator.core.engine.Turn
 import io.github.thucnguyen79.aitranslator.core.model.AudioInput
 import io.github.thucnguyen79.aitranslator.core.model.Lang
 import io.github.thucnguyen79.aitranslator.core.model.SpeechRecognizer
@@ -25,7 +26,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
@@ -62,8 +65,94 @@ class AppContainer(context: Context) {
         audioInput, recognizer, translator, tts, scope,
         canTranslate = { from, to -> packs.isLanguageReady(from) && packs.isLanguageReady(to) },
     ).apply {
-        seats = listOf(Seat(0, savedLang("seat0", Lang.VI)), Seat(1, savedLang("seat1", Lang.EN)))
         mutedSeats = prefs.getStringSet("muted_seats", emptySet()).orEmpty().map(String::toInt).toSet()
+        backTranslate = prefs.getBoolean("back_translate", false)
+    }
+
+    /** Face to face (phone between two people) or one list passed back and forth. */
+    val layout = MutableStateFlow(
+        runCatching { ConversationLayout.valueOf(prefs.getString("layout", null).orEmpty()) }.getOrDefault(ConversationLayout.FACE_TO_FACE),
+    )
+
+    /** People at the table in the "pass the phone" layout (2–4); face to face is always 2. */
+    val seatCount = MutableStateFlow(prefs.getInt("seat_count", 2).coerceIn(2, 4))
+
+    /** Each seat's language, also for seats not in use right now (remembered per seat). */
+    private val savedLangs = MutableList(4) { savedLang("seat$it", DEFAULT_LANGS[it]) }
+
+    /** The languages of the seats in use, in seat order. */
+    val seatLangs = MutableStateFlow<List<Lang>>(emptyList())
+
+    private fun applySeats() {
+        val count = if (layout.value == ConversationLayout.FACE_TO_FACE) 2 else seatCount.value
+        engine.seats = (0 until count).map { Seat(it, savedLangs[it]) }
+        seatLangs.value = engine.seats.map { it.lang }
+        preload()
+    }
+
+    fun setSeatCount(count: Int) {
+        seatCount.value = count.coerceIn(2, 4)
+        prefs.edit().putInt("seat_count", seatCount.value).apply()
+        applySeats()
+    }
+
+    val history = HistoryStore(File(context.filesDir, "history"))
+
+    /** Private mode: conversations are not saved (F9.5). */
+    val privateMode = MutableStateFlow(prefs.getBoolean("private_mode", false))
+
+    fun setPrivateMode(on: Boolean) {
+        privateMode.value = on
+        prefs.edit().putBoolean("private_mode", on).apply()
+    }
+
+    @Volatile private var sessionId = System.currentTimeMillis()
+
+    private fun saveSession(id: Long, turns: List<Turn>) {
+        if (turns.isEmpty() || privateMode.value) return
+        runCatching { history.save(SavedSession(id, System.currentTimeMillis(), seatLangs.value, turns)) }
+    }
+
+    /** Clears the screen and starts a new conversation; the old one stays in history (F9.3). */
+    fun clearConversation() {
+        val id = sessionId
+        val turns = engine.turns.value
+        sessionId = System.currentTimeMillis()
+        engine.clear()
+        scope.launch(Dispatchers.IO) { saveSession(id, turns) }
+    }
+
+    /** Check translations by translating them back into the speaker's language (F4.5). */
+    val backTranslate = MutableStateFlow(engine.backTranslate)
+
+    fun setBackTranslate(on: Boolean) {
+        backTranslate.value = on
+        engine.backTranslate = on
+        prefs.edit().putBoolean("back_translate", on).apply()
+    }
+
+    /** Speaking rate of translations read aloud (F5.3). */
+    val speechRate = MutableStateFlow(prefs.getFloat("speech_rate", 1f))
+
+    fun setSpeechRate(rate: Float) {
+        speechRate.value = rate
+        tts.rate = rate
+        prefs.edit().putFloat("speech_rate", rate).apply()
+    }
+
+    /** Text size multiplier on top of the system font size (F10.2). */
+    val fontScale = MutableStateFlow(prefs.getFloat("font_scale", 1f))
+
+    fun setFontScale(scale: Float) {
+        fontScale.value = scale
+        prefs.edit().putFloat("font_scale", scale).apply()
+    }
+
+    val theme = MutableStateFlow(runCatching { AppTheme.valueOf(prefs.getString("theme", null).orEmpty()) }.getOrDefault(AppTheme.SYSTEM))
+
+    fun setTheme(value: AppTheme) {
+        theme.value = value
+        prefs.edit().putString("theme", value.name).apply()
     }
 
     /** Bumped when TTS voices may have changed (app resumed, Supertonic pack installed): UI re-checks routes. */
@@ -84,14 +173,10 @@ class AppContainer(context: Context) {
         prefs.edit().putStringSet("muted_seats", muted.map(Int::toString).toSet()).apply()
     }
 
-    /** Face to face (phone between two people) or one list passed back and forth. */
-    val layout = MutableStateFlow(
-        runCatching { ConversationLayout.valueOf(prefs.getString("layout", null).orEmpty()) }.getOrDefault(ConversationLayout.FACE_TO_FACE),
-    )
-
     fun setLayout(value: ConversationLayout) {
         layout.value = value
         prefs.edit().putString("layout", value.name).apply()
+        applySeats()
     }
 
     /** Installs [packId] (and what it needs) under a foreground service, so leaving the app does not stop it. */
@@ -119,9 +204,19 @@ class AppContainer(context: Context) {
     private var preloadJob: Job? = null
 
     fun setSeatLang(seat: Int, lang: Lang) {
-        engine.seats = engine.seats.map { if (it.index == seat) it.copy(lang = lang) else it }
+        savedLangs[seat] = lang
         prefs.edit().putString("seat$seat", lang.code).apply()
-        preload()
+        applySeats()
+    }
+
+    init {
+        tts.rate = speechRate.value
+        applySeats()
+        scope.launch(Dispatchers.IO) { history.load() }
+        // Autosave: the current conversation is written a moment after it last changed (new turn, late
+        // translations, an edit). After clearConversation() the latest value is empty, so nothing stale is saved.
+        @OptIn(FlowPreview::class)
+        scope.launch(Dispatchers.IO) { engine.turns.debounce(1_000).collect { saveSession(sessionId, it) } }
     }
 
     fun setDiagnostics(on: Boolean) {
@@ -210,3 +305,7 @@ class AppContainer(context: Context) {
 }
 
 enum class ConversationLayout { FACE_TO_FACE, LIST }
+
+enum class AppTheme { SYSTEM, LIGHT, DARK }
+
+private val DEFAULT_LANGS = listOf(Lang.VI, Lang.EN, Lang.ZH, Lang.KO)

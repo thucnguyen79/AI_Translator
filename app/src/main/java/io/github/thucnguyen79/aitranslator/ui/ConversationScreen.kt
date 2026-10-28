@@ -54,6 +54,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -89,11 +90,17 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     val preparing by container.preparing.collectAsStateWithLifecycle()
     val muted by container.mutedSeats.collectAsStateWithLifecycle()
     val voicesVersion by container.voicesVersion.collectAsStateWithLifecycle()
-    var seatLangs by remember { mutableStateOf(engine.seats.map { it.lang }) }
+    val seatLangs by container.seatLangs.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val phrases = remember { Phrasebook.load(context) }
     // Re-evaluated whenever a pack finishes installing.
     val ready = remember(packStates) { Lang.entries.associateWith { container.packs.isLanguageReady(it) } }
     var big by remember { mutableStateOf<BigText?>(null) }
     var confirmClear by remember { mutableStateOf(false) }
+    /** The seat whose phrasebook is open. */
+    var phrasebookSeat by remember { mutableStateOf<Int?>(null) }
+    /** The turn being corrected (F6.5). */
+    var editing by remember { mutableStateOf<Turn?>(null) }
     /** The seat whose keyboard input is open: its half gets more room above the keyboard. */
     var typingSeat by remember { mutableStateOf<Int?>(null) }
     LaunchedEffect(ready) {
@@ -107,6 +114,33 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
             BigTextDialog(turn, b.readerSeat, seatLangs, onRotate = { big = b.copy(readerSeat = 1 - b.readerSeat) }) { big = null }
         }
     }
+    val faceToFace = container.layout.collectAsStateWithLifecycle().value == ConversationLayout.FACE_TO_FACE
+    phrasebookSeat?.let { seat ->
+        PhrasebookDialog(
+            phrases = phrases,
+            lang = seatLangs[seat],
+            otherLang = seatLangs.firstOrNull { it != seatLangs[seat] } ?: seatLangs[seat],
+            flipped = faceToFace && isFlipped(seat),
+            s = SeatStrings.of(seatLangs[seat]),
+            onPick = { phrase ->
+                phrasebookSeat = null
+                engine.submitPhrase(seat, phrase.texts)
+            },
+            onDismiss = { phrasebookSeat = null },
+        )
+    }
+    editing?.let { turn ->
+        EditDialog(
+            text = turn.source,
+            s = SeatStrings.of(turn.from),
+            flipped = faceToFace && isFlipped(turn.seat),
+            onSave = { text ->
+                engine.editTurn(turn.id, text)
+                editing = null
+            },
+            onDismiss = { editing = null },
+        )
+    }
     if (confirmClear) {
         val s = SeatStrings.of(seatLangs[0])
         AlertDialog(
@@ -115,7 +149,7 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
             text = { Text(s.clearMessage) },
             confirmButton = {
                 TextButton(onClick = {
-                    engine.clear()
+                    container.clearConversation()
                     confirmClear = false
                 }) { Text(s.clear) }
             },
@@ -123,16 +157,13 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
         )
     }
 
-    val onLang = { seat: Int, lang: Lang ->
-        container.setSeatLang(seat, lang)
-        seatLangs = container.engine.seats.map { it.lang }
-    }
+    val onLang = { seat: Int, lang: Lang -> container.setSeatLang(seat, lang) }
     val onMic = { seat: Int ->
         if (state is EngineState.Listening && (state as EngineState.Listening).seat == seat) engine.stopListening()
         else withMic { engine.startListening(seat) }
     }
-    val layout by container.layout.collectAsStateWithLifecycle()
-    if (layout == ConversationLayout.LIST) {
+    if (seatLangs.size < 2) return
+    if (!faceToFace) {
         ListConversation(
             container = container,
             state = state,
@@ -147,7 +178,9 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
             onMic = onMic,
             onType = engine::submitText,
             // In one shared list a sentence is enlarged for the other person.
-            onOpen = { turn -> big = BigText(turn.id, readerSeat = 1 - turn.seat) },
+            onOpen = { turn -> big = BigText(turn.id, readerSeat = if (turn.seat == 0) 1 else 0) },
+            onEdit = { editing = it },
+            onPhrasebook = { phrasebookSeat = it },
             onClear = { confirmClear = true },
             openPacks = openPacks,
         )
@@ -186,6 +219,8 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
                 onReplay = { turn -> engine.replay(turn, seatLangs[seat]) },
                 // Your own sentence is shown to the person opposite; someone else's sentence to you.
                 onOpen = { turn -> big = BigText(turn.id, readerSeat = if (turn.seat == seat) 1 - seat else seat) },
+                onEdit = { editing = it },
+                onPhrasebook = { phrasebookSeat = seat },
                 onClear = { confirmClear = true },
                 openPacks = openPacks,
             )
@@ -219,6 +254,8 @@ private fun SeatPanel(
     onType: (String) -> Unit,
     onReplay: (Turn) -> Unit,
     onOpen: (Turn) -> Unit,
+    onEdit: (Turn) -> Unit,
+    onPhrasebook: () -> Unit,
     onClear: () -> Unit,
     openPacks: () -> Unit,
 ) {
@@ -239,6 +276,10 @@ private fun SeatPanel(
                 // Read translations into this seat's language aloud, or only show them.
                 TextButton(onClick = onToggleMute, modifier = Modifier.semantics { contentDescription = s.readAloud }) {
                     Text(if (muted) "🔇" else "🔊", fontSize = 20.sp)
+                }
+                // Only the phone holder's half (bottom) offers clearing, so the guest cannot wipe it by accident.
+                if (seat == 0 && turns.isNotEmpty()) {
+                    TextButton(onClick = onClear, modifier = Modifier.semantics { contentDescription = s.clear }) { Text("🗑", fontSize = 20.sp) }
                 }
             }
         }
@@ -267,7 +308,10 @@ private fun SeatPanel(
         ) {
             items(turns, key = { it.id }) { turn ->
                 Box(if (flipped) Modifier.rotate(180f) else Modifier) {
-                    TurnBubble(turn, seat, lang, otherLang, ready, diagnostics, s, onReplay = { onReplay(turn) }, onOpen = { onOpen(turn) })
+                    TurnBubble(
+                        turn, seat, lang, otherLang, ready, diagnostics, s,
+                        onReplay = { onReplay(turn) }, onOpen = { onOpen(turn) }, onEdit = { onEdit(turn) },
+                    )
                 }
             }
         }
@@ -290,8 +334,8 @@ private fun SeatPanel(
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
             TextButton(onClick = { onTyping(!typing) }, enabled = ready) { Text(if (typing) s.hideKeyboard else "⌨ ${s.type}") }
-            // Only the phone holder's half (bottom) offers clearing, so the guest cannot wipe it by accident.
-            if (seat == 0 && turns.isNotEmpty()) TextButton(onClick = onClear) { Text("🗑 ${s.clear}") }
+            // Phrases carry their own translations, so they work before any pack is installed.
+            if (!typing) TextButton(onClick = onPhrasebook) { Text("📖 ${s.phrasebook}") }
             val listening = state is EngineState.Listening && state.seat == seat
             val busyElsewhere = when (state) {
                 is EngineState.Listening -> state.seat != seat
@@ -324,6 +368,7 @@ private fun TurnBubble(
     s: SeatStrings,
     onReplay: () -> Unit,
     onOpen: () -> Unit,
+    onEdit: () -> Unit,
 ) {
     val mine = turn.seat == seat
     val inMyLang = turn.textIn(lang)
@@ -339,6 +384,8 @@ private fun TurnBubble(
         ) {
             Text(main, fontSize = if (mine) 16.sp else 22.sp)
             secondary.forEach { Text(it, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            // What the other side read, translated back: lets the speaker spot a mistranslation (F4.5).
+            if (mine) turn.backTranslations[otherLang]?.let { BackTranslation(it, s) }
             if (inMyLang == null && canTranslate) {
                 Text(s.translatingLater, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
@@ -354,6 +401,35 @@ private fun TurnBubble(
             }
             if (!mine && inMyLang != null) {
                 TextButton(onClick = onReplay, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text("🔊 ${s.replay}", fontSize = 13.sp) }
+            }
+            if (mine && canTranslate) {
+                TextButton(onClick = onEdit, contentPadding = ButtonDefaults.TextButtonContentPadding) { Text("✎ ${s.edit}", fontSize = 13.sp) }
+            }
+        }
+    }
+}
+
+@Composable
+internal fun BackTranslation(text: String, s: SeatStrings) {
+    Text("↩ ${s.backTranslation}: $text", fontSize = 12.sp, fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
+}
+
+/** Corrects a misrecognised sentence (F6.5); [flipped] turns it towards the person across the table. */
+@Composable
+internal fun EditDialog(text: String, s: SeatStrings, flipped: Boolean, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+    var value by remember { mutableStateOf(text) }
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
+            Column(
+                Modifier.let { if (flipped) it.rotate(180f) else it }.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text("✎ ${s.edit}", style = MaterialTheme.typography.titleMedium)
+                OutlinedTextField(value = value, onValueChange = { value = it }, modifier = Modifier.fillMaxWidth())
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    TextButton(onClick = onDismiss) { Text(s.cancel) }
+                    TextButton(onClick = { onSave(value) }, enabled = value.isNotBlank()) { Text(s.save) }
+                }
             }
         }
     }

@@ -36,6 +36,11 @@ data class SeatStrings(
     val installVoice: String,
     val backupVoice: String,
     val readAloud: String,
+    val phrasebook: String,
+    val edit: String,
+    val save: String,
+    /** Label for a translation translated back into the speaker's language (F4.5). */
+    val backTranslation: String,
 ) {
     companion object {
         fun of(lang: Lang): SeatStrings = when (lang) {
@@ -48,8 +53,9 @@ data class SeatStrings(
                 packMissing = "Cần tải gói ngôn ngữ", openPacks = "Mở Gói ngôn ngữ",
                 noOfflineVoice = "Máy chưa có giọng đọc offline cho ngôn ngữ này",
                 rotate = "Xoay", copy = "Sao chép", copied = "Đã sao chép", close = "Đóng",
-                clearTitle = "Xoá hội thoại?", clearMessage = "Toàn bộ các câu trên màn hình sẽ bị xoá. Không thể hoàn tác.", cancel = "Huỷ",
+                clearTitle = "Xoá hội thoại?", clearMessage = "Các câu sẽ được xoá khỏi màn hình. Bản đã lưu vẫn còn trong Lịch sử (trừ khi bật chế độ riêng tư).", cancel = "Huỷ",
                 installVoice = "Cài giọng", backupVoice = "Tải giọng dự phòng", readAloud = "Đọc bản dịch",
+                phrasebook = "Câu mẫu", edit = "Sửa", save = "Lưu", backTranslation = "Dịch ngược",
             )
             Lang.EN -> SeatStrings(
                 speak = "Speak", stop = "Stop", type = "Type", hideKeyboard = "Hide keyboard", clear = "Clear",
@@ -60,8 +66,9 @@ data class SeatStrings(
                 packMissing = "Language pack needed", openPacks = "Open language packs",
                 noOfflineVoice = "No offline voice for this language on this phone",
                 rotate = "Rotate", copy = "Copy", copied = "Copied", close = "Close",
-                clearTitle = "Clear the conversation?", clearMessage = "All sentences on screen will be deleted. This cannot be undone.", cancel = "Cancel",
+                clearTitle = "Clear the conversation?", clearMessage = "The sentences will be removed from the screen. The saved copy stays in History (unless private mode is on).", cancel = "Cancel",
                 installVoice = "Install voice", backupVoice = "Get backup voice", readAloud = "Read translations aloud",
+                phrasebook = "Phrases", edit = "Edit", save = "Save", backTranslation = "Back-translation",
             )
             Lang.ZH -> SeatStrings(
                 speak = "说话", stop = "停止", type = "输入", hideKeyboard = "收起键盘", clear = "清除",
@@ -72,8 +79,9 @@ data class SeatStrings(
                 packMissing = "需要下载语言包", openPacks = "打开语言包",
                 noOfflineVoice = "本机没有该语言的离线语音",
                 rotate = "旋转", copy = "复制", copied = "已复制", close = "关闭",
-                clearTitle = "清除对话？", clearMessage = "屏幕上的所有句子都将被删除，无法撤销。", cancel = "取消",
+                clearTitle = "清除对话？", clearMessage = "屏幕上的句子将被清除。已保存的记录仍在“历史”中（除非开启了隐私模式）。", cancel = "取消",
                 installVoice = "安装语音", backupVoice = "下载备用语音", readAloud = "朗读译文",
+                phrasebook = "常用语", edit = "修改", save = "保存", backTranslation = "回译",
             )
             Lang.KO -> SeatStrings(
                 speak = "말하기", stop = "중지", type = "입력", hideKeyboard = "키보드 숨기기", clear = "지우기",
@@ -84,8 +92,9 @@ data class SeatStrings(
                 packMissing = "언어 팩이 필요합니다", openPacks = "언어 팩 열기",
                 noOfflineVoice = "이 기기에 이 언어의 오프라인 음성이 없습니다",
                 rotate = "회전", copy = "복사", copied = "복사됨", close = "닫기",
-                clearTitle = "대화를 지울까요?", clearMessage = "화면의 모든 문장이 삭제되며 되돌릴 수 없습니다.", cancel = "취소",
+                clearTitle = "대화를 지울까요?", clearMessage = "화면의 문장이 지워집니다. 저장된 기록은 '기록'에 남습니다 (비공개 모드가 아닌 경우).", cancel = "취소",
                 installVoice = "음성 설치", backupVoice = "예비 음성 받기", readAloud = "번역 읽어 주기",
+                phrasebook = "자주 쓰는 말", edit = "수정", save = "저장", backTranslation = "역번역",
             )
             Lang.JA -> SeatStrings(
                 speak = "話す", stop = "停止", type = "入力", hideKeyboard = "キーボードを閉じる", clear = "消去",
@@ -96,8 +105,9 @@ data class SeatStrings(
                 packMissing = "言語パックが必要です", openPacks = "言語パックを開く",
                 noOfflineVoice = "この端末にはこの言語のオフライン音声がありません",
                 rotate = "回転", copy = "コピー", copied = "コピーしました", close = "閉じる",
-                clearTitle = "会話を消去しますか？", clearMessage = "画面上のすべての文が削除されます。元に戻せません。", cancel = "キャンセル",
+                clearTitle = "会話を消去しますか？", clearMessage = "画面の文が消去されます。保存された記録は「履歴」に残ります（プライベートモードでない場合）。", cancel = "キャンセル",
                 installVoice = "音声をインストール", backupVoice = "予備の音声を入手", readAloud = "翻訳を読み上げる",
+                phrasebook = "定型文", edit = "修正", save = "保存", backTranslation = "逆翻訳",
             )
         }
     }

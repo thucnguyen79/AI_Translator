@@ -35,7 +35,7 @@
     <string name="layout_face">Đối mặt</string>
     <string name="layout_face_desc">Đặt máy giữa hai người, nửa trên quay về người đối diện</string>
     <string name="layout_list">Chuyền tay</string>
-    <string name="layout_list_desc">Một danh sách chat, chuyền máy qua lại</string>
+    <string name="layout_list_desc">Một danh sách chat cho 2–4 người, chuyền máy cho nhau</string>
     <string name="diagnostics_title">Chế độ chẩn đoán</string>
     <string name="diagnostics_desc">Hiện thời gian nhận dạng và dịch dưới mỗi câu</string>
     <string name="models_licences">Mô hình &amp; giấy phép</string>
@@ -50,4 +50,34 @@
     <string name="mic_denied_title">Micro đang bị tắt</string>
     <string name="mic_denied_message">Hãy bật quyền micro cho AI Translator trong Cài đặt để nói. Bạn vẫn có thể nhập câu bằng bàn phím.</string>
     <string name="open_settings">Mở cài đặt</string>
+    <!-- Lịch sử -->
+    <string name="tab_history">Lịch sử</string>
+    <string name="history_private">Chế độ riêng tư</string>
+    <string name="history_private_desc">Không lưu hội thoại trên máy</string>
+    <string name="history_search">Tìm trong hội thoại</string>
+    <string name="history_empty">Chưa có hội thoại nào. Hội thoại được tự động lưu (chỉ chữ, không lưu âm thanh).</string>
+    <string name="history_no_match">Không tìm thấy</string>
+    <string name="history_delete_all">Xoá tất cả</string>
+    <string name="history_delete_all_title">Xoá tất cả hội thoại?</string>
+    <string name="history_delete_title">Xoá hội thoại này?</string>
+    <string name="history_delete_message">Không thể hoàn tác.</string>
+    <string name="history_share">Chia sẻ</string>
+    <string name="history_back">Quay lại</string>
+    <plurals name="history_sentences">
+        <item quantity="other">%1$d câu</item>
+    </plurals>
+
+    <!-- Cài đặt (tab Thông tin) -->
+    <string name="seats_title">Số người (chuyền tay)</string>
+    <string name="back_translate_title">Dịch ngược để kiểm tra</string>
+    <string name="back_translate_desc">Dưới câu của bạn, hiện bản người kia đọc được dịch ngược lại tiếng của bạn</string>
+    <string name="speech_rate_title">Tốc độ đọc</string>
+    <string name="speech_rate_slow">Chậm</string>
+    <string name="speech_rate_normal">Bình thường</string>
+    <string name="speech_rate_fast">Nhanh</string>
+    <string name="font_size_title">Cỡ chữ</string>
+    <string name="theme_title">Giao diện</string>
+    <string name="theme_system">Theo máy</string>
+    <string name="theme_light">Sáng</string>
+    <string name="theme_dark">Tối</string>
 </resources>

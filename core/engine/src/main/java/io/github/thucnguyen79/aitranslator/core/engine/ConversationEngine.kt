@@ -29,6 +29,12 @@ data class Turn(
     val translations: Map<Lang, String>,
     val typed: Boolean,
     val timings: Timings,
+    /** Each translation translated back into [from], so the speaker can check what the others read. */
+    val backTranslations: Map<Lang, String> = emptyMap(),
+    /** From the phrasebook: its translations were written by people, not the model. */
+    val phrase: Boolean = false,
+    /** The text was corrected by hand after recognition. */
+    val edited: Boolean = false,
 ) {
     /** The sentence in [lang]: the original when it was said in [lang], else a translation (null if none yet). */
     fun textIn(lang: Lang): String? = if (lang == from) source else translations[lang]
@@ -75,6 +81,9 @@ class ConversationEngine(
     /** Seats that do not want translations read aloud; a language is spoken if any seat using it is not muted. */
     var mutedSeats: Set<Int> = emptySet()
 
+    /** Translate each translation back into the speaker's language (F4.5); runs after speaking. */
+    var backTranslate = false
+
     private var job: Job? = null
     private var catchUpJob: Job? = null
     @Volatile private var stopRequested = false
@@ -118,6 +127,30 @@ class ConversationEngine(
         if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) interrupt()
         val from = langOf(seat)
         launchTurn(seat) { translateAndSpeak(seat, from, text.trim(), typed = true, asrMs = 0) }
+    }
+
+    /**
+     * A phrasebook sentence: [texts] holds it in several languages, so known translations are used as they
+     * are and only missing languages go through the model.
+     */
+    fun submitPhrase(seat: Int, texts: Map<Lang, String>) {
+        val from = langOf(seat)
+        val source = texts[from] ?: return
+        if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) interrupt()
+        launchTurn(seat) { translateAndSpeak(seat, from, source, typed = true, asrMs = 0, prepared = texts - from, phrase = true) }
+    }
+
+    /** Replaces a misrecognised sentence with [text] and translates it again (nothing is read aloud). */
+    fun editTurn(id: Long, text: String) {
+        val turn = turns.value.firstOrNull { it.id == id } ?: return
+        if (text.isBlank() || text == turn.source) return
+        _turns.update { list -> list.map { if (it.id == id) it.copy(source = text.trim(), translations = emptyMap(), backTranslations = emptyMap(), edited = true, phrase = false) else it } }
+        scope.launch {
+            val targets = seats.map { it.lang }.distinct().filter { it != turn.from && canTranslate(turn.from, it) }
+            val translations = targets.associateWith { translator.translate(text.trim(), turn.from, it) }
+            _turns.update { list -> list.map { if (it.id == id) it.copy(translations = translations) else it } }
+            if (backTranslate) addBackTranslations(id)
+        }
     }
 
     /**
@@ -169,18 +202,41 @@ class ConversationEngine(
         _turns.value = emptyList()
     }
 
-    private suspend fun translateAndSpeak(seat: Int, from: Lang, text: String, typed: Boolean, asrMs: Long, audioSec: Double = 0.0) {
+    private suspend fun translateAndSpeak(
+        seat: Int,
+        from: Lang,
+        text: String,
+        typed: Boolean,
+        asrMs: Long,
+        audioSec: Double = 0.0,
+        prepared: Map<Lang, String> = emptyMap(),
+        phrase: Boolean = false,
+    ) {
         _state.value = EngineState.Translating(seat)
-        val targets = seats.filter { it.index != seat }.map { it.lang }.distinct().filter { it != from && canTranslate(from, it) }
+        val targets = seats.filter { it.index != seat }.map { it.lang }.distinct()
+            .filter { it != from && (it in prepared || canTranslate(from, it)) }
         val t0 = clock()
-        val translations = targets.associateWith { translator.translate(text, from, it) }
+        val translations = targets.associateWith { prepared[it] ?: translator.translate(text, from, it) }
         val mtMs = (clock() - t0) / 1_000_000
-        _turns.update { it + Turn(nextId++, seat, from, text, translations, typed, Timings(asrMs, mtMs, audioSec)) }
+        val id = nextId++
+        _turns.update { it + Turn(id, seat, from, text, translations, typed, Timings(asrMs, mtMs, audioSec), phrase = phrase) }
         val listening = seats.filter { it.index != seat && it.index !in mutedSeats }.map { it.lang }.toSet()
         for (lang in targets.filter { it in listening }) {
             _state.value = EngineState.Speaking(seat, lang)
             tts.speak(translations.getValue(lang), lang)
         }
+        if (backTranslate && !phrase) addBackTranslations(id)
+    }
+
+    /** Fills [Turn.backTranslations]: each translation translated back into the language it came from. */
+    private suspend fun addBackTranslations(id: Long) {
+        val turn = turns.value.firstOrNull { it.id == id } ?: return
+        val back = turn.translations
+            .filterKeys { canTranslate(it, turn.from) }
+            .mapValues { (lang, text) -> runCatching { translator.translate(text, lang, turn.from) }.getOrNull() }
+            .filterValues { it != null }
+            .mapValues { it.value!! }
+        _turns.update { list -> list.map { if (it.id == id) it.copy(backTranslations = back) else it } }
     }
 
     private fun launchTurn(seat: Int, block: suspend () -> Unit) {
