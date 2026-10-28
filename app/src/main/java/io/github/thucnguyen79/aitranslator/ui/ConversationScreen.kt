@@ -2,6 +2,8 @@ package io.github.thucnguyen79.aitranslator.ui
 
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Intent
+import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -47,6 +49,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
@@ -57,9 +61,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thucnguyen79.aitranslator.AppContainer
+import io.github.thucnguyen79.aitranslator.ConversationLayout
 import io.github.thucnguyen79.aitranslator.core.engine.EngineState
 import io.github.thucnguyen79.aitranslator.core.engine.Turn
 import io.github.thucnguyen79.aitranslator.core.model.Lang
+import io.github.thucnguyen79.aitranslator.core.tts.SupertonicTts
 import io.github.thucnguyen79.aitranslator.core.tts.TtsRoute
 import java.util.Locale
 
@@ -79,6 +85,8 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     val level by container.micLevel.collectAsStateWithLifecycle()
     val diagnostics by container.diagnostics.collectAsStateWithLifecycle()
     val preparing by container.preparing.collectAsStateWithLifecycle()
+    val muted by container.mutedSeats.collectAsStateWithLifecycle()
+    val voicesVersion by container.voicesVersion.collectAsStateWithLifecycle()
     var seatLangs by remember { mutableStateOf(engine.seats.map { it.lang }) }
     // Re-evaluated whenever a pack finishes installing.
     val ready = remember(packStates) { Lang.entries.associateWith { container.packs.isLanguageReady(it) } }
@@ -89,6 +97,7 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     LaunchedEffect(ready) {
         container.preload()
         engine.catchUpTranslations() // a newly installed pack can fill gaps in earlier turns
+        container.refreshVoices() // the Supertonic pack may have just been installed
     }
 
     big?.let { b ->
@@ -110,6 +119,37 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
             },
             dismissButton = { TextButton(onClick = { confirmClear = false }) { Text(s.cancel) } },
         )
+    }
+
+    val onLang = { seat: Int, lang: Lang ->
+        container.setSeatLang(seat, lang)
+        seatLangs = container.engine.seats.map { it.lang }
+    }
+    val onMic = { seat: Int ->
+        if (state is EngineState.Listening && (state as EngineState.Listening).seat == seat) engine.stopListening()
+        else withMic { engine.startListening(seat) }
+    }
+    val layout by container.layout.collectAsStateWithLifecycle()
+    if (layout == ConversationLayout.LIST) {
+        ListConversation(
+            container = container,
+            state = state,
+            turns = turns,
+            seatLangs = seatLangs,
+            missing = seatLangs.distinct().filterNot { ready.getValue(it) },
+            level = level,
+            preparing = preparing,
+            diagnostics = diagnostics,
+            muted = muted,
+            onLang = onLang,
+            onMic = onMic,
+            onType = engine::submitText,
+            // In one shared list a sentence is enlarged for the other person.
+            onOpen = { turn -> big = BigText(turn.id, readerSeat = 1 - turn.seat) },
+            onClear = { confirmClear = true },
+            openPacks = openPacks,
+        )
+        return
     }
 
     // imePadding: with edge-to-edge the keyboard would otherwise cover the input field and buttons.
@@ -134,15 +174,12 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
                 level = level,
                 preparing = preparing,
                 diagnostics = diagnostics,
+                muted = seat in muted,
+                voicesVersion = voicesVersion,
+                onToggleMute = { container.toggleMute(seat) },
                 container = container,
-                onLang = { lang ->
-                    container.setSeatLang(seat, lang)
-                    seatLangs = container.engine.seats.map { it.lang }
-                },
-                onMic = {
-                    if (state is EngineState.Listening && (state as EngineState.Listening).seat == seat) engine.stopListening()
-                    else withMic { engine.startListening(seat) }
-                },
+                onLang = { lang -> onLang(seat, lang) },
+                onMic = { onMic(seat) },
                 onType = { text -> engine.submitText(seat, text) },
                 onReplay = { turn -> engine.replay(turn, seatLangs[seat]) },
                 // Your own sentence is shown to the person opposite; someone else's sentence to you.
@@ -170,6 +207,9 @@ private fun SeatPanel(
     level: Float,
     preparing: Boolean,
     diagnostics: Boolean,
+    muted: Boolean,
+    voicesVersion: Int,
+    onToggleMute: () -> Unit,
     container: AppContainer,
     onLang: (Lang) -> Unit,
     onMic: () -> Unit,
@@ -185,15 +225,21 @@ private fun SeatPanel(
     val listState = rememberLazyListState()
     LaunchedEffect(turns.size) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
     var route by remember(lang) { mutableStateOf<TtsRoute?>(null) }
-    LaunchedEffect(lang) { route = runCatching { container.tts.route(lang) }.getOrNull() }
+    LaunchedEffect(lang, voicesVersion) { route = runCatching { container.tts.route(lang) }.getOrNull() }
 
     Column(modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!typing) {
-            Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                Lang.entries.forEach { l -> FilterChip(selected = l == lang, onClick = { onLang(l) }, label = { Text(l.nativeName) }) }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Lang.entries.forEach { l -> FilterChip(selected = l == lang, onClick = { onLang(l) }, label = { Text(l.nativeName) }) }
+                }
+                // Read translations into this seat's language aloud, or only show them.
+                TextButton(onClick = onToggleMute, modifier = Modifier.semantics { contentDescription = s.readAloud }) {
+                    Text(if (muted) "🔇" else "🔊", fontSize = 20.sp)
+                }
             }
         }
-        if (route?.offline == false) Text(s.noOfflineVoice, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+        if (route?.offline == false && !muted) NoVoiceNotice(lang, s, container, openPacks)
         // The conversation stays visible without packs; only this side's input is disabled.
         if (!ready) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -310,11 +356,30 @@ private fun TurnBubble(
     }
 }
 
+/** No offline voice for [lang]: offer the system's voice data installer and, where it helps, the Supertonic pack. */
+@Composable
+internal fun NoVoiceNotice(lang: Lang, s: SeatStrings, container: AppContainer, openPacks: () -> Unit) {
+    val context = LocalContext.current
+    Column {
+        Text(s.noOfflineVoice, color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+            TextButton(onClick = {
+                val install = Intent(TextToSpeech.Engine.ACTION_INSTALL_TTS_DATA).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                runCatching { context.startActivity(install) }
+                    .onFailure { runCatching { context.startActivity(Intent("com.android.settings.TTS_SETTINGS")) } }
+            }) { Text(s.installVoice, fontSize = 13.sp) }
+            if (lang in SupertonicTts.LANGS && !container.packs.isInstalled("tts-supertonic")) {
+                TextButton(onClick = openPacks) { Text(s.backupVoice, fontSize = 13.sp) }
+            }
+        }
+    }
+}
+
 /** A turn shown full screen to [readerSeat]: in that seat's language and turned towards it. */
-private data class BigText(val turnId: Long, val readerSeat: Int)
+internal data class BigText(val turnId: Long, val readerSeat: Int)
 
 @Composable
-private fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, onRotate: () -> Unit, onDismiss: () -> Unit) {
+internal fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, onRotate: () -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val lang = seatLangs[readerSeat]
     val s = SeatStrings.of(lang)
@@ -356,7 +421,7 @@ private fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, on
 }
 
 @Composable
-private fun StatusLine(state: EngineState, seat: Int, level: Float, preparing: Boolean, s: SeatStrings) {
+internal fun StatusLine(state: EngineState, seat: Int, level: Float, preparing: Boolean, s: SeatStrings) {
     val text = when (state) {
         is EngineState.Listening -> if (state.seat == seat) s.listening else s.otherSpeaking
         is EngineState.Recognizing -> s.recognizing

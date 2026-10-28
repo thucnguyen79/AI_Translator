@@ -183,6 +183,18 @@ class ConversationEngineTest {
         assertTrue(translator.calls.isEmpty())
     }
 
+    @Test fun mutedSeatsAreNotReadAloud() = runTest {
+        val engine = engine()
+        engine.seats = listOf(Seat(0, Lang.VI), Seat(1, Lang.EN), Seat(2, Lang.JA), Seat(3, Lang.JA))
+        engine.mutedSeats = setOf(1, 2)
+        engine.startListening(0)
+        advanceUntilIdle()
+
+        // English is muted; Japanese is still wanted by seat 3. Everything is still translated.
+        assertEquals(listOf(Lang.JA), tts.spoken.map { it.second })
+        assertEquals(setOf(Lang.EN, Lang.JA), engine.turns.value.single().translations.keys)
+    }
+
     @Test fun failuresAreReported() = runTest {
         val engine = ConversationEngine(
             audio,

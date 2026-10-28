@@ -33,6 +33,9 @@ data class SeatStrings(
     val clearTitle: String,
     val clearMessage: String,
     val cancel: String,
+    val installVoice: String,
+    val backupVoice: String,
+    val readAloud: String,
 ) {
     companion object {
         fun of(lang: Lang): SeatStrings = when (lang) {
@@ -46,6 +49,7 @@ data class SeatStrings(
                 noOfflineVoice = "Máy chưa có giọng đọc offline cho ngôn ngữ này",
                 rotate = "Xoay", copy = "Sao chép", copied = "Đã sao chép", close = "Đóng",
                 clearTitle = "Xoá hội thoại?", clearMessage = "Toàn bộ các câu trên màn hình sẽ bị xoá. Không thể hoàn tác.", cancel = "Huỷ",
+                installVoice = "Cài giọng", backupVoice = "Tải giọng dự phòng", readAloud = "Đọc bản dịch",
             )
             Lang.EN -> SeatStrings(
                 speak = "Speak", stop = "Stop", type = "Type", hideKeyboard = "Hide keyboard", clear = "Clear",
@@ -57,6 +61,7 @@ data class SeatStrings(
                 noOfflineVoice = "No offline voice for this language on this phone",
                 rotate = "Rotate", copy = "Copy", copied = "Copied", close = "Close",
                 clearTitle = "Clear the conversation?", clearMessage = "All sentences on screen will be deleted. This cannot be undone.", cancel = "Cancel",
+                installVoice = "Install voice", backupVoice = "Get backup voice", readAloud = "Read translations aloud",
             )
             Lang.ZH -> SeatStrings(
                 speak = "说话", stop = "停止", type = "输入", hideKeyboard = "收起键盘", clear = "清除",
@@ -68,6 +73,7 @@ data class SeatStrings(
                 noOfflineVoice = "本机没有该语言的离线语音",
                 rotate = "旋转", copy = "复制", copied = "已复制", close = "关闭",
                 clearTitle = "清除对话？", clearMessage = "屏幕上的所有句子都将被删除，无法撤销。", cancel = "取消",
+                installVoice = "安装语音", backupVoice = "下载备用语音", readAloud = "朗读译文",
             )
             Lang.KO -> SeatStrings(
                 speak = "말하기", stop = "중지", type = "입력", hideKeyboard = "키보드 숨기기", clear = "지우기",
@@ -79,6 +85,7 @@ data class SeatStrings(
                 noOfflineVoice = "이 기기에 이 언어의 오프라인 음성이 없습니다",
                 rotate = "회전", copy = "복사", copied = "복사됨", close = "닫기",
                 clearTitle = "대화를 지울까요?", clearMessage = "화면의 모든 문장이 삭제되며 되돌릴 수 없습니다.", cancel = "취소",
+                installVoice = "음성 설치", backupVoice = "예비 음성 받기", readAloud = "번역 읽어 주기",
             )
             Lang.JA -> SeatStrings(
                 speak = "話す", stop = "停止", type = "入力", hideKeyboard = "キーボードを閉じる", clear = "消去",
@@ -90,6 +97,7 @@ data class SeatStrings(
                 noOfflineVoice = "この端末にはこの言語のオフライン音声がありません",
                 rotate = "回転", copy = "コピー", copied = "コピーしました", close = "閉じる",
                 clearTitle = "会話を消去しますか？", clearMessage = "画面上のすべての文が削除されます。元に戻せません。", cancel = "キャンセル",
+                installVoice = "音声をインストール", backupVoice = "予備の音声を入手", readAloud = "翻訳を読み上げる",
             )
         }
     }

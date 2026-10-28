@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_conversation">Hội thoại</string>
+    <string name="tab_packs">Gói ngôn ngữ</string>
+    <string name="tab_about">Thông tin</string>
+
+    <string name="cancel">Huỷ</string>
+    <string name="delete">Xoá</string>
+
+    <string name="packs_title">Gói ngôn ngữ</string>
+    <string name="packs_intro">Tải một lần, sau đó dịch hoàn toàn offline. Tiếng Anh, Trung, Hàn, Nhật dùng chung một mô hình nhận dạng giọng nói (~163 MB) tải kèm ở gói đầu tiên.</string>
+    <string name="pack_download">Tải %1$d MB</string>
+    <string name="pack_installed">✓ Đã cài</string>
+    <string name="pack_queued">Đang chờ gói khác tải xong…</string>
+    <string name="pack_extracting">Đang giải nén…</string>
+    <string name="pack_error">Lỗi: %1$s</string>
+    <string name="pack_shared_step">Đang tải phần dùng chung (%1$s)</string>
+    <string name="pack_progress">%1$d / %2$d MB</string>
+    <string name="pack_core">Thành phần cơ bản</string>
+    <string name="pack_speech_multi">Nhận dạng giọng nói đa ngôn ngữ</string>
+    <string name="pack_supertonic">Giọng đọc dự phòng (Supertonic)</string>
+    <string name="pack_language_subtitle">Nhận dạng giọng nói + dịch offline</string>
+    <string name="pack_supertonic_subtitle">Đọc %1$s khi máy thiếu giọng offline</string>
+    <string name="packs_wifi_only">Chỉ tải qua Wi-Fi</string>
+    <string name="packs_wifi_only_desc">Khi dùng dữ liệu di động, hỏi trước khi tải</string>
+    <string name="packs_metered_title">Không dùng Wi-Fi</string>
+    <string name="packs_metered_message">Lần tải này dùng khoảng %1$d MB dữ liệu di động. Vẫn tải?</string>
+    <string name="packs_download_anyway">Tải</string>
+    <string name="packs_no_space">Không đủ dung lượng: cần %1$d MB, còn trống %2$d MB</string>
+    <string name="packs_notification_channel">Tải gói ngôn ngữ</string>
+    <string name="packs_notification_title">Đang tải gói ngôn ngữ</string>
+
+    <string name="about_tagline">Dịch hội thoại offline cho người du lịch. Âm thanh và văn bản không rời khỏi máy.</string>
+    <string name="layout_title">Bố cục hội thoại</string>
+    <string name="layout_face">Đối mặt</string>
+    <string name="layout_face_desc">Đặt máy giữa hai người, nửa trên quay về người đối diện</string>
+    <string name="layout_list">Chuyền tay</string>
+    <string name="layout_list_desc">Một danh sách chat, chuyền máy qua lại</string>
+    <string name="diagnostics_title">Chế độ chẩn đoán</string>
+    <string name="diagnostics_desc">Hiện thời gian nhận dạng và dịch dưới mỗi câu</string>
+    <string name="models_licences">Mô hình &amp; giấy phép</string>
+    <string name="libraries">Thư viện</string>
+    <string name="diag_load">Nạp mô hình (lần đầu):</string>
+    <string name="diag_not_loaded">chưa nạp — mở tab Hội thoại</string>
+    <string name="diag_session">Phiên hiện tại: %1$d câu (%2$d nói, %3$d gõ)</string>
+
+    <string name="mic_title">Cần quyền micro</string>
+    <string name="mic_rationale">Để dịch lời nói, AI Translator chỉ nghe sau khi bạn bấm Nói. Âm thanh được xử lý ngay trên máy, không gửi đi đâu.</string>
+    <string name="mic_continue">Tiếp tục</string>
+    <string name="mic_denied_title">Micro đang bị tắt</string>
+    <string name="mic_denied_message">Hãy bật quyền micro cho AI Translator trong Cài đặt để nói. Bạn vẫn có thể nhập câu bằng bàn phím.</string>
+    <string name="open_settings">Mở cài đặt</string>
+</resources>

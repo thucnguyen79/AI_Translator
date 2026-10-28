@@ -72,7 +72,8 @@ class ConversationEngine(
             field = value
             catchUpTranslations()
         }
-    var speakTranslations = true
+    /** Seats that do not want translations read aloud; a language is spoken if any seat using it is not muted. */
+    var mutedSeats: Set<Int> = emptySet()
 
     private var job: Job? = null
     private var catchUpJob: Job? = null
@@ -175,11 +176,10 @@ class ConversationEngine(
         val translations = targets.associateWith { translator.translate(text, from, it) }
         val mtMs = (clock() - t0) / 1_000_000
         _turns.update { it + Turn(nextId++, seat, from, text, translations, typed, Timings(asrMs, mtMs, audioSec)) }
-        if (speakTranslations) {
-            for (lang in targets) {
-                _state.value = EngineState.Speaking(seat, lang)
-                tts.speak(translations.getValue(lang), lang)
-            }
+        val listening = seats.filter { it.index != seat && it.index !in mutedSeats }.map { it.lang }.toSet()
+        for (lang in targets.filter { it in listening }) {
+            _state.value = EngineState.Speaking(seat, lang)
+            tts.speak(translations.getValue(lang), lang)
         }
     }
 

@@ -1,6 +1,8 @@
 package io.github.thucnguyen79.aitranslator
 
 import android.content.Context
+import android.content.Intent
+import androidx.core.content.ContextCompat
 import io.github.thucnguyen79.aitranslator.core.engine.ConversationEngine
 import io.github.thucnguyen79.aitranslator.core.engine.Seat
 import io.github.thucnguyen79.aitranslator.core.model.AudioInput
@@ -32,6 +34,7 @@ import java.io.File
 
 /** Manual dependency wiring. Models load lazily on first use, once their pack is installed. */
 class AppContainer(context: Context) {
+    private val appContext = context.applicationContext
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
     private val prefs = context.getSharedPreferences("settings", Context.MODE_PRIVATE)
 
@@ -60,6 +63,49 @@ class AppContainer(context: Context) {
         canTranslate = { from, to -> packs.isLanguageReady(from) && packs.isLanguageReady(to) },
     ).apply {
         seats = listOf(Seat(0, savedLang("seat0", Lang.VI)), Seat(1, savedLang("seat1", Lang.EN)))
+        mutedSeats = prefs.getStringSet("muted_seats", emptySet()).orEmpty().map(String::toInt).toSet()
+    }
+
+    /** Bumped when TTS voices may have changed (app resumed, Supertonic pack installed): UI re-checks routes. */
+    val voicesVersion = MutableStateFlow(0)
+
+    fun refreshVoices() {
+        tts.invalidate()
+        voicesVersion.update { it + 1 }
+    }
+
+    /** Seats whose translations are not read aloud (each half has its own speaker toggle). */
+    val mutedSeats = MutableStateFlow(engine.mutedSeats)
+
+    fun toggleMute(seat: Int) {
+        val muted = if (seat in mutedSeats.value) mutedSeats.value - seat else mutedSeats.value + seat
+        mutedSeats.value = muted
+        engine.mutedSeats = muted
+        prefs.edit().putStringSet("muted_seats", muted.map(Int::toString).toSet()).apply()
+    }
+
+    /** Face to face (phone between two people) or one list passed back and forth. */
+    val layout = MutableStateFlow(
+        runCatching { ConversationLayout.valueOf(prefs.getString("layout", null).orEmpty()) }.getOrDefault(ConversationLayout.FACE_TO_FACE),
+    )
+
+    fun setLayout(value: ConversationLayout) {
+        layout.value = value
+        prefs.edit().putString("layout", value.name).apply()
+    }
+
+    /** Installs [packId] (and what it needs) under a foreground service, so leaving the app does not stop it. */
+    fun startDownloads(packId: String) {
+        packs.install(packId)
+        ContextCompat.startForegroundService(appContext, Intent(appContext, PackDownloadService::class.java))
+    }
+
+    /** Ask before downloading packs over mobile data. */
+    val wifiOnly = MutableStateFlow(prefs.getBoolean("wifi_only", true))
+
+    fun setWifiOnly(on: Boolean) {
+        wifiOnly.value = on
+        prefs.edit().putBoolean("wifi_only", on).apply()
     }
 
     /** Show per-turn timings in the conversation and a summary in the info tab. */
@@ -68,7 +114,7 @@ class AppContainer(context: Context) {
     /** True while models for the seats' languages are being loaded ahead of the first turn. */
     val preparing = MutableStateFlow(false)
 
-    /** First load time of each component in ms (e.g. "ASR vi", "Dịch vi→en"), for diagnostics. */
+    /** First load time of each component in ms (e.g. "ASR vi", "MT vi→en"), for diagnostics. */
     val loadTimes = MutableStateFlow<Map<String, Long>>(emptyMap())
     private var preloadJob: Job? = null
 
@@ -94,10 +140,10 @@ class AppContainer(context: Context) {
         preloadJob = scope.launch {
             preparing.value = true
             try {
-                timed("Micro (VAD)") { audioInput.prepare() }
-                for (lang in langs) timed("Nhận dạng ${lang.code}") { recognizer.prepare(lang) }
+                timed("VAD") { audioInput.prepare() }
+                for (lang in langs) timed("ASR ${lang.code}") { recognizer.prepare(lang) }
                 for (from in langs) for (to in langs) {
-                    if (from != to) timed("Dịch ${from.code}→${to.code}") { translator.prepare(from, to) }
+                    if (from != to) timed("MT ${from.code}→${to.code}") { translator.prepare(from, to) }
                 }
             } catch (e: Exception) {
                 // A failed preload only costs the first turn its speed; that turn reports the error.
@@ -162,3 +208,5 @@ class AppContainer(context: Context) {
         }
     }
 }
+
+enum class ConversationLayout { FACE_TO_FACE, LIST }
