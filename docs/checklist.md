@@ -170,4 +170,4 @@
 | 2026-10-28 | `53e3c71` | v1: F7.2 câu mẫu, F6.5 sửa câu, F4.5 dịch ngược, F9 lịch sử, F5.3 tốc độ đọc, F10.2 cỡ chữ & giao diện, F1.1 3–4 người, F1.3 màu ghế; cấu hình ký release, chính sách quyền riêng tư — chưa thử trên máy (máy chưa cắm) |
 | 2026-10-28 | `d1bb405` | Thử v1 trên máy: câu mẫu, sửa câu, dịch ngược, lịch sử, 3 người, cỡ chữ, giao diện ✓; sửa tự cuộn, cuộn câu mẫu ở nửa xoay, màu thanh trạng thái, nút nói bị cắt chữ |
 | 2026-10-28 | `fb828f0` | Thanh công cụ gọn + nền phân vùng (yêu cầu mới), F6.2 Quanh bàn, F2.6 rảnh tay, F3.4 gói nhận diện ngôn ngữ (103 MB), chọn giọng, tên từng người — chưa thử trên máy (máy chưa cắm) |
-| 2026-10-28 | _(commit này)_ | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
+| 2026-10-28 | `f5abf50` | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
