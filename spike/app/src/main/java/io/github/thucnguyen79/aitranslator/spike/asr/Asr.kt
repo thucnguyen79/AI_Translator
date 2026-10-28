@@ -76,7 +76,7 @@ class SherpaAsr(val model: AsrModel, paths: SpikePaths, val numThreads: Int) : A
         try {
             stream.acceptWaveform(samples, SAMPLE_RATE)
             recognizer.decode(stream)
-            return clean(recognizer.getResult(stream).text)
+            return AsrText.restore(clean(recognizer.getResult(stream).text), lang)
         } finally {
             stream.release()
         }

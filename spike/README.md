@@ -116,4 +116,40 @@ Bergamot: nạp 8 mô hình 1,0 s, RAM +434 MB.
 - 4/5 ngôn ngữ có giọng offline sẵn; tiếng Nhật phải tải dữ liệu giọng → app cần hướng dẫn tải (F5.4).
 - Thời gian tới khi phát 0,5–0,8 s là đáng kể trong ngân sách độ trễ; cần đo lại sau lần gọi đầu.
 
-**ASR**: chưa đo — cần ghi âm bộ thử (tab **Ghi âm**).
+**ASR** — `vi-zipformer-30m`, 2 luồng, 8 câu đầu do 1 người đọc (yên tĩnh):
+
+| Câu | CER | WER | Giải mã TB / p95 | RTF | Nạp | RAM |
+|---|---|---|---|---|---|---|
+| 8 | 0,0% | 0,0% | 71 / 90 ms | 0,027 | 1,2 s | +85 MB |
+
+- Nhận dạng tiếng Việt chính xác và rất nhanh (câu 3 s giải mã < 0,1 s). Mẫu còn quá nhỏ — cần thêm người đọc,
+  giọng vùng miền và tiếng ồn trước khi kết luận.
+- Mô hình trả về **CHỮ IN HOA, không dấu câu** ("SAO BÀ KHÔNG HIỂU TÔI NÓI TIẾNG VIỆT À").
+
+**Hội thoại** — lượt nói thật trong tab Hội thoại (tính từ lúc VAD báo hết câu):
+
+| Hướng | Lượt | ASR | Dịch | → chữ | TTS bắt đầu |
+|---|---|---|---|---|---|
+| vi→en | 4 | 52 ms | 40 ms | 92 ms | 146 ms |
+| en→vi | 1 | 144 ms | 207 ms | 351 ms | 137 ms |
+
+Toàn bộ chuỗi xử lý sau khi nói xong chỉ mất **0,1–0,5 s** — thời gian chờ thực tế chủ yếu là 0,6 s im lặng để VAD
+nhận ra hết câu. TTS khi đã khởi động chỉ ~0,15 s (con số 0,5–0,8 s ở trên là lần gọi đầu).
+
+**Phát hiện: chữ IN HOA làm hỏng bản dịch.** Ở lượt nói thật, vi→en ra "HANDSELEN", "WHY DID NOT UNDERS UNDERSEAR…"
+dù ASR nhận đúng. Kiểm chứng trên máy với cùng câu, chỉ khác cách viết:
+
+| Đầu vào Bergamot | Bản dịch |
+|---|---|
+| XIN CHÀO | HANDSELEN |
+| Xin chào. | Hello. |
+| BẠN CÓ THỂ NÓI CHẬM HƠN ĐƯỢC KHÔNG | CAN YOU SAY LESS THAN |
+| Bạn có thể nói chậm hơn được không? | Can you speak more slowly? |
+| XIN LỖI BẠN CÓ NÓI ĐƯỢC TIẾNG ANH KHÔNG | SORETLY SAY ENGLISH. |
+| Xin lỗi bạn có nói được tiếng Anh không? | Are you sorry if you can speak English? |
+| Xin lỗi, bạn có nói được tiếng Anh không? | Sorry, can you speak English? |
+
+→ Đã thêm bước khôi phục chữ & dấu câu giữa ASR và dịch ([AsrText.kt](app/src/main/java/io/github/thucnguyen79/aitranslator/spike/asr/AsrText.kt)):
+chữ thường + viết hoa đầu câu và tên riêng, "?" khi có từ để hỏi (không, chưa, à, gì, đâu, bao nhiêu…), "." còn lại,
+dấu phẩy sau lời chào/xin lỗi ở đầu câu. Đây là quy tắc tạm cho spike; sản phẩm nên dùng mô hình khôi phục dấu câu
+tiếng Việt (cần tìm/đánh giá ở bước sau).

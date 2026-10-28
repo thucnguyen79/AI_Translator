@@ -110,4 +110,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     // Closed-source baseline for MT quality comparison only; not planned for the product.
     implementation(libs.mlkit.translate)
+
+    testImplementation(libs.junit4)
 }
