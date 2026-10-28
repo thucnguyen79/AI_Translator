@@ -186,4 +186,4 @@
 | 2026-10-28 | `157b90b` | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |
 | 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
-| 2026-10-28 | _(commit này)_ | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
+| 2026-10-28 | `79defb1` | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
