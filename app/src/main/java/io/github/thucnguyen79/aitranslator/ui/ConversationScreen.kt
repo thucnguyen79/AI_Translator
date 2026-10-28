@@ -131,8 +131,18 @@ private fun SeatPanel(
             return@Column
         }
 
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(turns, key = { it.id }) { turn -> TurnBubble(turn, seat, lang, onReplay) }
+        // In the rotated (top) panel the list is turned back upright, laid out in reverse and only its items are
+        // rotated: scrolling inside a 180° graphicsLayer flings in the wrong direction on release.
+        val flipped = seat == 1
+        LazyColumn(
+            Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it },
+            state = listState,
+            reverseLayout = flipped,
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            items(turns, key = { it.id }) { turn ->
+                Box(if (flipped) Modifier.rotate(180f) else Modifier) { TurnBubble(turn, seat, lang, onReplay) }
+            }
         }
 
         StatusLine(state, seat, level)
