@@ -1,5 +1,6 @@
 package io.github.thucnguyen79.aitranslator.ui
 
+import android.app.Activity
 import android.app.ActivityManager
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
@@ -44,6 +45,7 @@ import io.github.thucnguyen79.aitranslator.AppContainer
 import io.github.thucnguyen79.aitranslator.AppTheme
 import io.github.thucnguyen79.aitranslator.ConversationLayout
 import io.github.thucnguyen79.aitranslator.R
+import io.github.thucnguyen79.aitranslator.UiLanguage
 import io.github.thucnguyen79.aitranslator.core.model.Lang
 import io.github.thucnguyen79.aitranslator.core.tts.SUPERTONIC_VOICE
 import java.util.Locale
@@ -62,6 +64,16 @@ fun AboutScreen(container: AppContainer) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.about_tagline), fontSize = 14.sp)
+
+        // App language (F10.1). Names stay in their own language so either can be found.
+        val context = LocalContext.current
+        Text(stringResource(R.string.ui_language_title), style = MaterialTheme.typography.titleMedium)
+        Choices(listOf(UiLanguage.VI, UiLanguage.EN), UiLanguage.get(context), label = { if (it == UiLanguage.VI) "Tiếng Việt" else "English" }) { code ->
+            if (code != UiLanguage.get(context)) {
+                UiLanguage.set(context, code)
+                (context as? Activity)?.recreate()
+            }
+        }
 
         Text(stringResource(R.string.layout_title), style = MaterialTheme.typography.titleMedium)
         listOf(

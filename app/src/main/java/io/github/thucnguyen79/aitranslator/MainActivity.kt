@@ -1,6 +1,7 @@
 package io.github.thucnguyen79.aitranslator
 
 import android.Manifest
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
@@ -76,6 +77,8 @@ class MainActivity : ComponentActivity() {
         }
     }
     private val container get() = (application as AiTranslatorApp).container
+
+    override fun attachBaseContext(newBase: Context) = super.attachBaseContext(UiLanguage.wrap(newBase))
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

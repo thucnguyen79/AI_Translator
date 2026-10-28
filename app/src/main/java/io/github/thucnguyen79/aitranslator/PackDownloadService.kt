@@ -5,6 +5,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import io.github.thucnguyen79.aitranslator.core.packs.PackState
@@ -24,6 +25,9 @@ class PackDownloadService : Service() {
     private var watcher: Job? = null
 
     override fun onBind(intent: Intent?) = null
+
+    // The notification follows the app's language, not the phone's.
+    override fun attachBaseContext(base: Context) = super.attachBaseContext(UiLanguage.wrap(base))
 
     override fun onCreate() {
         super.onCreate()

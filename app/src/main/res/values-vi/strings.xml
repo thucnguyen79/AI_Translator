@@ -96,4 +96,5 @@
     <string name="pack_in_use">✓ Đang dùng</string>
     <string name="pack_use">Dùng bản này</string>
     <string name="voice_n">Giọng %1$d</string>
+    <string name="ui_language_title">Ngôn ngữ giao diện</string>
 </resources>

@@ -35,6 +35,7 @@
     <string name="packs_notification_title">Downloading language packs</string>
 
     <!-- Info -->
+    <string name="ui_language_title">App language</string>
     <string name="about_tagline">Offline conversation translation for travellers. Audio and text never leave the phone.</string>
     <string name="layout_title">Conversation layout</string>
     <string name="layout_face">Face to face</string>

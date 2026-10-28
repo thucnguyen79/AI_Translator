@@ -85,7 +85,7 @@
 - [x] F9.3 Xoá hội thoại: nút 🗑 làm trống màn hình (bản lưu vẫn ở Lịch sử); xoá từng phiên / xoá tất cả trong tab Lịch sử — thử trên máy ✓ (xoá từng phiên)
 
 ### F10. Cài đặt & chẩn đoán
-- [x] F10.1 Giao diện vi + en: chuỗi trong `strings.xml` (tiếng Anh mặc định, `values-vi` tiếng Việt, theo ngôn ngữ máy); hội thoại theo ngôn ngữ từng ghế (5 thứ tiếng) — thử trên máy ✓ (máy để tiếng Anh → giao diện tiếng Anh)
+- [x] F10.1 Giao diện vi + en: **mặc định tiếng Việt** dù máy để ngôn ngữ nào; đổi sang English ở mục "Ngôn ngữ giao diện" (tab Thông tin), áp dụng ngay, cả thông báo tải gói; hội thoại vẫn theo ngôn ngữ từng ghế (5 thứ tiếng) — thử trên máy ✓ (máy để tiếng Anh, app hiện tiếng Việt; chuyển qua lại)
 - [x] F10.3 Chẩn đoán (tab Thông tin): thời gian nhận dạng/dịch dưới mỗi câu, thời gian nạp mô hình, trung bình phiên, thông tin máy
 - [x] F10.4 Giấy phép & ghi nguồn
 - [x] Nạp sẵn mô hình khi mở app / đổi ngôn ngữ (trên máy thử: VAD 0,05 s · nhận dạng vi 2,0 s · zh 1,8 s · mỗi chiều dịch 0,3 s) → lần nói đầu không phải chờ
@@ -186,3 +186,4 @@
 | 2026-10-28 | `157b90b` | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |
 | 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
+| 2026-10-28 | _(commit này)_ | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
