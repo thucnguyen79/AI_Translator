@@ -13,7 +13,7 @@
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
 | 2 — MVP (2 người) | ✅ Xong | Đủ các mục MVP, đã thử trên máy; còn vài trường hợp chưa tái hiện được (⚠️) |
-| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Gần đủ tính năng v1 (đã thử trên máy); còn F3.2, F3.5, phát hành; gói nhận diện ngôn ngữ chưa thử |
+| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Gần đủ tính năng v1 (đã thử trên máy); còn F3.2, F3.5, phát hành; nhận diện ngôn ngữ nói chưa đủ tin cậy với tiếng Việt |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
 ## Giai đoạn 0 — Spike ([spike/README.md](../spike/README.md))
@@ -38,7 +38,7 @@
 - [x] Danh mục gói sinh tự động (`tools/gen_packs.py`), SHA-256 lấy từ nơi phát hành
 - [x] Tải gói: tải tiếp khi rớt mạng, kiểm SHA-256, giải nén an toàn, cài lần lượt có hàng đợi
 - [x] Engine hội thoại: khoá lượt, dịch một-sang-nhiều, ngắt lời, nhập phím, nghe lại
-- [x] 36 unit test (engine, gói, dấu câu, lịch sử); GitHub Actions: test + APK debug
+- [x] 40 unit test (engine, gói, dấu câu, lịch sử, đặc trưng Whisper; thêm 1 test chạy mô hình thật khi có `LID_TEST_DIR`); GitHub Actions: test + APK debug
 - [x] Kiểm chứng trên máy thật: tải gói vi + en, hội thoại, cuộn ở nửa xoay
 - [x] Tải gói chạy nền khi rời app (foreground service, xem F8.2)
 - [ ] Ký bản release 🟡 — cấu hình xong (`keystore.properties` hoặc biến môi trường, xem [release.md](release.md)); 👤 cần tạo khoá và cất giữ
@@ -102,7 +102,11 @@
 - [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
 - [x] F1.3 Màu & tên ghế: mỗi người một màu + số thứ tự (thử trên máy ✓); đặt tên trong tab Thông tin, hiện ở vùng của người đó, nút nói, bong bóng, lịch sử và file chia sẻ — thử trên máy ✓
 - [x] F2.6 Chế độ rảnh tay (menu ⋮ ở vùng người cầm máy, hoặc nút 🎧 ở Chuyền tay): nói xong máy tự nghe tiếp; bấm mic của ai thì người đó nói ngay; lỗi micro thì tự tắt — thử trên máy ✓ (không có gói nhận diện: tự nghe người 1, đã thu và dịch được một câu nói thật)
-- [x] F3.4 Nhận diện ngôn ngữ nói: gói tuỳ chọn "Nhận diện ngôn ngữ nói" (Whisper tiny int8, **103 MB**, không phải 75 MB như ước tính); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt từng người — ⚠️ chưa tải gói thử trên máy, chưa đo độ chính xác với câu ngắn tiếng Việt
+- [ ] F3.4 Nhận diện ngôn ngữ nói 🟡 — gói tuỳ chọn "Nhận diện ngôn ngữ nói" (Whisper tiny int8, **103 MB**); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt. Tải và chạy trên máy ✓. Đo:
+  - Để Whisper tự chọn trong 99 ngôn ngữ (API của sherpa-onnx): tiếng Việt sai 7/12 (ra zh, th, ms, ar) → **bỏ**, tự chạy mô hình bằng ONNX Runtime và chỉ so các ngôn ngữ đang có ở bàn: đúng 26/28 cặp ngôn ngữ trên file mẫu sạch (vi↔zh đúng hết)
+  - Phát file mẫu qua loa máy tính cho điện thoại nghe: tiếng Trung luôn đúng; tiếng Việt lúc đúng lúc sai — âm thanh thu từ xa làm điểm vi/zh gần sát nhau (+0,24 thay vì +8)
+  - Đã thêm luật theo lượt: chênh lệch dưới 2 điểm thì chọn người đến lượt (đúng khi hai người nói xen kẽ, sai khi một người nói 2 câu liền)
+  - 👤 Cần thử với người thật nói gần máy; nếu vẫn kém: cân nhắc Whisper base (~200 MB) hoặc chỉ dùng rảnh tay kiểu lần lượt
 - [ ] F3.2 Chữ tạm thời · F3.5 Mô hình theo cấu hình máy
 - [x] F4.5 Dịch ngược để kiểm tra: bật trong tab Thông tin, hiện "↩ Dịch ngược: …" dưới câu của người nói, chạy sau khi đọc xong — thử trên máy ✓ (đã bắt được bản dịch sai của câu gõ không dấu)
 - [x] F5.3 Tốc độ đọc Chậm/Bình thường/Nhanh; chọn giọng từng ngôn ngữ (Tự động / Giọng 1, 2… của máy / Supertonic) có nút ▶ nghe thử — thử trên máy ✓ (tiếng Việt có 6 giọng offline; chọn, nghe thử, trả về Tự động)
@@ -151,7 +155,7 @@
 
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-1. Tải gói Nhận diện ngôn ngữ nói (103 MB) và thử rảnh tay khi ai nói cũng được; nghe thử tốc độ đọc; chế độ riêng tư
+1. 👤 Thử rảnh tay "ai nói cũng được" với người thật (vi + một ngôn ngữ khác), nói gần máy; nghe thử tốc độ đọc; chế độ riêng tư
 2. 👤 Thử các mục ⚠️ cũ: hỏi quyền micro (cài mới app), dùng dữ liệu di động khi tải, máy thiếu giọng offline
 3. Phát hành: 👤 tạo khoá ký, kiểm tra kích thước bản release, ảnh chụp màn hình
 4. Còn lại của v1: F3.2 chữ tạm thời · F3.5 mô hình theo cấu hình máy
@@ -171,3 +175,4 @@
 | 2026-10-28 | `d1bb405` | Thử v1 trên máy: câu mẫu, sửa câu, dịch ngược, lịch sử, 3 người, cỡ chữ, giao diện ✓; sửa tự cuộn, cuộn câu mẫu ở nửa xoay, màu thanh trạng thái, nút nói bị cắt chữ |
 | 2026-10-28 | `fb828f0` | Thanh công cụ gọn + nền phân vùng (yêu cầu mới), F6.2 Quanh bàn, F2.6 rảnh tay, F3.4 gói nhận diện ngôn ngữ (103 MB), chọn giọng, tên từng người — chưa thử trên máy (máy chưa cắm) |
 | 2026-10-28 | `f5abf50` | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
+| 2026-10-28 | _(commit này)_ | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |

@@ -341,7 +341,8 @@ class AppContainer(context: Context) {
             }
         }
 
-        override suspend fun identify(utterance: Utterance): Lang? = prepare().identify(utterance)
+        override suspend fun identify(utterance: Utterance, candidates: Collection<Lang>, expected: Lang?): Lang? =
+            prepare().identify(utterance, candidates, expected)
     }
 
     /** One sherpa-onnx recognizer per installed model, created on first use (or by [preload]). */

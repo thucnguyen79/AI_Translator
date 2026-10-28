@@ -21,8 +21,11 @@ interface SpeechRecognizer {
 
 /** Tells which language an utterance is spoken in (F3.4). */
 interface LanguageIdentifier {
-    /** The detected language, or null when it is none of [Lang]. */
-    suspend fun identify(utterance: Utterance): Lang?
+    /**
+     * The most likely of [candidates] (the languages at the table), or null when it cannot tell. When the
+     * audio is ambiguous, [expected] (whose turn it would normally be) wins.
+     */
+    suspend fun identify(utterance: Utterance, candidates: Collection<Lang>, expected: Lang? = null): Lang?
 }
 
 interface Translator {

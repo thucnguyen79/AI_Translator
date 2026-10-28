@@ -256,7 +256,7 @@ class ConversationEngineTest {
     @Test fun handsFreePicksTheSeatFromTheSpokenLanguage() = runTest {
         val engine = engine()
         engine.identifier = object : LanguageIdentifier {
-            override suspend fun identify(utterance: Utterance) = Lang.EN
+            override suspend fun identify(utterance: Utterance, candidates: Collection<Lang>, expected: Lang?) = Lang.EN
         }
         recognizer.text = "hello"
         audio.blockAfter = 1
@@ -267,6 +267,24 @@ class ConversationEngineTest {
         assertEquals(1, turn.seat)
         assertEquals("vi:hello", turn.translations[Lang.VI])
         assertEquals(EngineState.Listening(ANY_SEAT), engine.state.value)
+        engine.setHandsFree(false)
+    }
+
+    @Test fun handsFreeTellsTheIdentifierWhoseTurnItIs() = runTest {
+        val engine = engine()
+        val seen = mutableListOf<Lang?>()
+        engine.identifier = object : LanguageIdentifier {
+            override suspend fun identify(utterance: Utterance, candidates: Collection<Lang>, expected: Lang?): Lang {
+                seen += expected
+                return Lang.VI
+            }
+        }
+        audio.blockAfter = 2
+        engine.setHandsFree(true)
+        advanceUntilIdle()
+
+        // Nobody has spoken yet, then after seat 0 (Vietnamese) it is seat 1's (English) turn.
+        assertEquals(listOf(null, Lang.EN), seen)
         engine.setHandsFree(false)
     }
 

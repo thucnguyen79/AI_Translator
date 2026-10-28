@@ -7,4 +7,6 @@ dependencies {
     implementation(libs.sherpa.onnx)
     implementation(libs.onnxruntime.android)
     implementation(libs.kotlinx.coroutines.android)
+
+    testImplementation(libs.onnxruntime.desktop)
 }

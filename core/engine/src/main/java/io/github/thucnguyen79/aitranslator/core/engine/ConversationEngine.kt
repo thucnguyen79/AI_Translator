@@ -179,7 +179,9 @@ class ConversationEngine(
             }
             _state.value = EngineState.Recognizing(ANY_SEAT)
             val detected = try {
-                identifier?.identify(utterance)
+                // Whose turn it would be: in a conversation people usually take turns.
+                val expected = lastSeat?.let { langOf(nextSeat()) }
+                identifier?.identify(utterance, seats.map { it.lang }.distinct(), expected)
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
