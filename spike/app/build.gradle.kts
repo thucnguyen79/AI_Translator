@@ -32,6 +32,8 @@ android {
             externalNativeBuild {
                 cmake {
                     arguments += listOf(
+                        // Submodules are initialised by hand (see spike/README.md); don't let CMake clone the rest.
+                        "-DGIT_SUBMODULE=OFF",
                         "-DANDROID_STL=c++_shared",
                         "-DANDROID_CPP_FEATURES=exceptions",
                         "-DCMAKE_BUILD_TYPE=Release",

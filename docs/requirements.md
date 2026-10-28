@@ -71,7 +71,7 @@ Danh sách chi tiết theo từng hạng mục xem [backlog.md](backlog.md).
 | Mã | Yêu cầu | Chỉ tiêu ban đầu (sẽ hiệu chỉnh sau giai đoạn thử nghiệm mô hình) |
 |---|---|---|
 | N1 | Độ trễ (offline, máy tầm trung) | Nói xong → hiện bản dịch: **≤ 2,5 s (p50)**, ≤ 4 s (p95); chữ tạm thời ≤ 1 s |
-| N2 | Thiết bị tối thiểu | Android 8.0 (API 26), **arm64-v8a**, RAM ≥ 4 GB (khuyến nghị 6 GB) |
+| N2 | Thiết bị tối thiểu | Android 9 (API 28 — Bergamot/Marian cần `glob`/`iconv` của libc từ API 28), **arm64-v8a**, RAM ≥ 4 GB (khuyến nghị 6 GB) |
 | N3 | Dung lượng | APK cơ bản ≤ 60 MB; mỗi gói ngôn ngữ mục tiêu ≤ 300 MB |
 | N4 | Pin & nhiệt | ≤ 10% pin / 30 phút hội thoại liên tục; không gây nóng máy kéo dài |
 | N5 | Hoạt động offline | 100% tính năng hội thoại chạy khi bật chế độ máy bay (sau khi đã tải gói) |

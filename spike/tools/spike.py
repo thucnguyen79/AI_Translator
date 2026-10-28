@@ -3,6 +3,7 @@
 
 Usage (from the spike/ folder):
     python tools/spike.py deps                        # sherpa-onnx AAR -> app/libs
+    python tools/spike.py bergamot                    # Bergamot submodules for the Android build
     python tools/spike.py models --asr vi-zipformer-30m sensevoice-2024 --vad --mt vi zh ko ja
     python tools/spike.py push                        # models/ (+ testset/audio) -> phone
     python tools/spike.py pull                        # phone results -> results/<device>/
@@ -158,6 +159,31 @@ def cmd_models(args: argparse.Namespace) -> None:
         shutil.rmtree(MODELS / "_downloads", ignore_errors=True)
 
 
+BERGAMOT_DIR = SPIKE / "app" / "src" / "main" / "cpp" / "bergamot"
+# (repo relative to BERGAMOT_DIR, submodules needed for the Android arm64 build, submodules to skip)
+BERGAMOT_SUBMODULES = [
+    (".", ["3rd_party/marian-dev", "3rd_party/ssplit-cpp"], ["bergamot-translator-tests", "3rd_party/pybind11"]),
+    ("3rd_party/marian-dev", ["src/3rd_party/sentencepiece", "src/3rd_party/ruy", "src/3rd_party/simd_utils"],
+     ["examples", "regression-tests", "src/3rd_party/nccl", "src/3rd_party/fbgemm", "src/3rd_party/intgemm",
+      "src/3rd_party/simple-websocket-server", "src/3rd_party/onnxjs"]),
+    ("3rd_party/marian-dev/src/3rd_party/ruy", ["third_party/cpuinfo"], ["third_party/googletest"]),
+]
+
+
+def cmd_bergamot(_: argparse.Namespace) -> None:
+    """Initialise only the Bergamot submodules the Android build needs (the full tree is several GB)."""
+    def git(*args: str, cwd: Path) -> None:
+        subprocess.run(["git", *args], cwd=cwd, check=True)
+
+    git("submodule", "update", "--init", str(BERGAMOT_DIR.relative_to(SPIKE.parent)), cwd=SPIKE.parent)
+    for repo, needed, skipped in BERGAMOT_SUBMODULES:
+        cwd = BERGAMOT_DIR / repo
+        for s in skipped:
+            git("config", f"submodule.{s}.update", "none", cwd=cwd)
+        git("submodule", "update", "--init", "--depth", "1", *needed, cwd=cwd)
+    print("  ✓ Bergamot sẵn sàng để build")
+
+
 def adb(*args: str, check: bool = True) -> subprocess.CompletedProcess:
     exe = shutil.which("adb") or "adb"
     return subprocess.run([exe, *args], check=check, text=True, capture_output=True)
@@ -253,6 +279,7 @@ def main() -> None:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("deps", help="tải sherpa-onnx AAR").set_defaults(fn=cmd_deps)
+    sub.add_parser("bergamot", help="khởi tạo submodule Bergamot cần cho Android").set_defaults(fn=cmd_bergamot)
     m = sub.add_parser("models", help="tải mô hình về spike/models")
     m.add_argument("--asr", nargs="*", metavar="ID", help=", ".join(ASR_MODELS))
     m.add_argument("--vad", action="store_true", help="Silero VAD")

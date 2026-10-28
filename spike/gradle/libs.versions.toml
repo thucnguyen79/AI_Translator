@@ -3,7 +3,8 @@ agp = "9.4.1"
 kotlin = "2.4.21"
 compileSdk = "37"
 targetSdk = "36"
-minSdk = "26"
+# Bergamot/Marian (pathie-cpp) needs glob() and iconv(), which Android's libc only has from API 28.
+minSdk = "28"
 
 coreKtx = "1.19.1"
 activityCompose = "1.13.0"

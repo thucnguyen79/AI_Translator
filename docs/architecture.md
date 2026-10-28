@@ -108,7 +108,7 @@ Các phương án so sánh ở Giai đoạn 0:
 | Lưu trữ | Room (lịch sử), DataStore (cài đặt) |
 | Tải gói | WorkManager + OkHttp (tải tiếp khi rớt mạng, kiểm SHA-256) |
 | Native | sherpa-onnx AAR; Bergamot qua JNI/NDK (CMake) |
-| Build | Gradle Kotlin DSL, version catalog; `minSdk 26`, ABI `arm64-v8a` (+ `x86_64` cho emulator) |
+| Build | Gradle Kotlin DSL, version catalog; `minSdk 28` (yêu cầu của Bergamot), ABI `arm64-v8a` (+ `x86_64` cho emulator) |
 | CI | GitHub Actions: build, unit test, lint |
 
 ## 4. Cấu trúc module

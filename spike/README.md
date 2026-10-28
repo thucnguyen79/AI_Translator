@@ -30,11 +30,12 @@ trên máy để thay bộ câu mà không cần build lại.
 
 ## Cách chạy
 
-Yêu cầu: JDK 17+, Android SDK (compileSdk 37), Python 3.10+, `adb`, điện thoại Android 8+ arm64 bật USB debugging.
+Yêu cầu: JDK 17+, Android SDK (compileSdk 37), Python 3.10+, `adb`, điện thoại Android 9+ arm64 bật USB debugging.
 
 ```bash
 cd spike
 python tools/spike.py deps                                   # sherpa-onnx AAR (kiểm SHA-256)
+python tools/spike.py bergamot                               # mã nguồn Bergamot (submodule)
 python tools/spike.py models --vad --asr vi-zipformer-30m sensevoice-2024 --mt vi zh ko ja
 ./gradlew installDebug                                       # hoặc gradlew.bat trên Windows
 python tools/spike.py push                                   # đẩy models/ lên máy
@@ -52,19 +53,20 @@ Gợi ý ghi âm: mỗi ngôn ngữ ≥ 3 người đọc; với tiếng Việt 
 có tiếng ồn nền (quán cà phê, đường phố) với mã người đọc khác nhau (vd `nam-bac-1`, `nam-bac-1-on`).
 File ghi âm là dữ liệu giọng nói cá nhân nên **không đưa lên git** (`spike/testset/audio/` đã nằm trong `.gitignore`).
 
-## Bật Bergamot (dịch mã nguồn mở)
+## Bergamot (dịch mã nguồn mở)
 
-Bergamot không có bản build Android sẵn; app tự biên dịch nó khi mã nguồn có trong `app/src/main/cpp/bergamot`.
-Cách đã được dự án RTranslator dùng thành công là bản fork có sẵn cấu hình Android của tác giả RTranslator:
+Bergamot không có bản build Android sẵn nên app biên dịch nó từ mã nguồn. Mã nằm ở submodule
+`app/src/main/cpp/bergamot`, trỏ tới bản fork [niedev/bergamot-translator](https://github.com/niedev/bergamot-translator)
+của tác giả RTranslator (đã có cấu hình build Android). Sau khi clone repo, khởi tạo đúng các phần cần cho arm64
+(bỏ qua fbgemm, nccl, bộ test… nặng vài GB):
 
 ```bash
-git submodule add https://github.com/niedev/bergamot-translator spike/app/src/main/cpp/bergamot
-git -C spike/app/src/main/cpp/bergamot submodule update --init --depth 1 3rd_party/marian-dev 3rd_party/ssplit-cpp
+python tools/spike.py bergamot
 ```
 
-Sau đó build lại (cần NDK 28.2.13676358 và CMake 3.22.1 trong Android SDK; lần đầu biên dịch Marian mất khá lâu).
-Tab **Mô hình** sẽ hiện "Thư viện Bergamot trong APK: có". Phần JNI ở [app/src/main/cpp/bergamot_jni.cpp](app/src/main/cpp/bergamot_jni.cpp)
-**chưa được biên dịch thử** — cần kiểm tra khi bật.
+Build cần NDK 28.2.13676358 và CMake 3.22.1 trong Android SDK; lần đầu biên dịch Marian mất khá lâu.
+Nếu thư mục `app/src/main/cpp/bergamot` trống, app vẫn build được nhưng chỉ dịch bằng ML Kit.
+Tab **Mô hình** cho biết APK có thư viện Bergamot hay không.
 
 ## Tiêu chí quyết định (đề xuất)
 
