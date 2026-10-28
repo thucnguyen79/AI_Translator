@@ -146,4 +146,4 @@
 | 2026-10-28 | `04469d4` | Tạo checklist; Giai đoạn 1 xong, MVP đang làm |
 | 2026-10-28 | `e297de9` | F6.6 chữ lớn, F6.7 sao chép, F10.3 chẩn đoán, nạp sẵn mô hình, F9.3 xoá hội thoại, sửa bàn phím che ô nhập |
 | 2026-10-28 | — | Thử đổi ngôn ngữ giữa hội thoại trên máy: ghi 3 lỗi (F1.5) |
-| 2026-10-28 | (commit này) | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |
+| 2026-10-28 | `3552b6c` | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |
