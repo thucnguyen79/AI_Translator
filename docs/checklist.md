@@ -12,7 +12,7 @@
 | Phân tích & thiết kế | ✅ Xong | [requirements.md](requirements.md), [backlog.md](backlog.md), [architecture.md](architecture.md) |
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
-| 2 — MVP (2 người) | 🟡 Gần xong | Đủ các mục MVP trong code; một số mục mới chưa thử trên máy (⚠️) |
+| 2 — MVP (2 người) | ✅ Xong | Đủ các mục MVP, đã thử trên máy; còn vài trường hợp chưa tái hiện được (⚠️) |
 | 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | ⬜ Chưa bắt đầu | Một số phần đã có sẵn trong engine |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
@@ -51,7 +51,7 @@
 - [x] F1.4 Nhớ ngôn ngữ của từng ghế
 
 ### F2. Thu âm
-- [x] F2.1 Quyền micro: hộp thoại giải thích trước khi hỏi; bị từ chối hẳn → hộp thoại mở Cài đặt (vẫn nhập phím được) — ⚠️ chưa thử trên máy (máy đã cấp quyền)
+- [x] F2.1 Quyền micro: hộp thoại giải thích trước khi hỏi; bị từ chối hẳn → hộp thoại mở Cài đặt (vẫn nhập phím được) — ⚠️ chưa thử trên máy (máy thử đã cấp quyền từ trước)
 - [x] F2.2 Bấm-để-nói theo ghế (bấm để nói, bấm lại để dừng)
 - [x] F2.3 Khoá lượt nói
 - [x] F2.4 Tự dừng khi im lặng (Silero VAD, 0,6 s)
@@ -61,13 +61,13 @@
 ### F3–F5. Nhận dạng, dịch, đọc
 - [x] F3.1 ASR offline vi, en
 - [x] F4.1 Dịch vi↔en
-- [x] F5.1 Tự đọc bản dịch, nút 🔊/🔇 riêng từng ghế (lưu lại) — ⚠️ chưa thử trên máy
+- [x] F5.1 Tự đọc bản dịch, nút 🔊/🔇 riêng từng ghế (lưu lại) — thử trên máy ✓
 - [x] F5.2 Đọc lần lượt, không chồng tiếng
-- [x] F5.4 Thiếu giọng offline: cảnh báo + nút "Cài giọng" (trình cài dữ liệu giọng của hệ thống) + "Tải giọng dự phòng" (Supertonic); tự kiểm tra lại khi quay về app — ⚠️ chưa thử trên máy
+- [x] F5.4 Thiếu giọng offline: cảnh báo + nút "Cài giọng" (trình cài dữ liệu giọng của hệ thống) + "Tải giọng dự phòng" (Supertonic); tự kiểm tra lại khi quay về app — ⚠️ chưa thử được: máy thử đã có giọng offline cho cả 5 ngôn ngữ (xem trong Chẩn đoán)
 
 ### F6. Giao diện
 - [x] F6.1 Hai người chia đôi, nửa trên xoay 180°
-- [x] F6.3 Bố cục "Chuyền tay": một danh sách chat thẳng, câu gốc + bản dịch, nút nói/nhập riêng từng người; chọn trong tab Thông tin — ⚠️ chưa thử trên máy
+- [x] F6.3 Bố cục "Chuyền tay": một danh sách chat thẳng, câu gốc + bản dịch, nút nói/nhập riêng từng người; chọn trong tab Thông tin — thử trên máy ✓
 - [x] F6.4 Bong bóng câu gốc + bản dịch
 - [x] F6.6 Chữ lớn toàn màn hình: chạm bong bóng → bản dịch tự quay về người cần đọc, có nút xoay
 - [x] F6.7 Nghe lại + sao chép (trong màn hình chữ lớn)
@@ -77,7 +77,7 @@
 ### F7–F8. Bàn phím & gói ngôn ngữ
 - [x] F7.1 Nhập bằng bàn phím
 - [x] F8.1 Danh sách gói & dung lượng, trạng thái
-- [x] F8.2 Tải theo nhu cầu: tải tiếp khi rớt mạng; "Chỉ tải qua Wi-Fi" (hỏi trước khi dùng dữ liệu di động); kiểm tra dung lượng trống; tải nền bằng foreground service có thông báo tiến độ — ⚠️ chưa thử trên máy
+- [x] F8.2 Tải theo nhu cầu: tải tiếp khi rớt mạng; "Chỉ tải qua Wi-Fi" (hỏi trước khi dùng dữ liệu di động); kiểm tra dung lượng trống; tải nền bằng foreground service có thông báo tiến độ — thử trên máy ✓ (tải gói 한국어 khi app ở nền; hỏi dùng dữ liệu di động và báo thiếu dung lượng chưa thử được vì máy đang dùng Wi-Fi, còn trống nhiều)
 - [x] F8.3 Kiểm tra SHA-256
 - [x] F8.4 Xoá gói
 
@@ -85,7 +85,7 @@
 - [ ] F9.3 Xoá hội thoại 🟡 — có nút xoá hội thoại đang hiển thị (kèm xác nhận, chỉ ở nửa của người cầm máy); xoá phiên đã lưu / xoá tất cả chờ F9.1 (v1)
 
 ### F10. Cài đặt & chẩn đoán
-- [x] F10.1 Giao diện vi + en: chuỗi trong `strings.xml` (tiếng Anh mặc định, `values-vi` tiếng Việt, theo ngôn ngữ máy); hội thoại theo ngôn ngữ từng ghế (5 thứ tiếng) — ⚠️ chưa thử trên máy
+- [x] F10.1 Giao diện vi + en: chuỗi trong `strings.xml` (tiếng Anh mặc định, `values-vi` tiếng Việt, theo ngôn ngữ máy); hội thoại theo ngôn ngữ từng ghế (5 thứ tiếng) — thử trên máy ✓ (máy để tiếng Anh → giao diện tiếng Anh)
 - [x] F10.3 Chẩn đoán (tab Thông tin): thời gian nhận dạng/dịch dưới mỗi câu, thời gian nạp mô hình, trung bình phiên, thông tin máy
 - [x] F10.4 Giấy phép & ghi nguồn
 - [x] Nạp sẵn mô hình khi mở app / đổi ngôn ngữ (trên máy thử: VAD 0,05 s · nhận dạng vi 2,0 s · zh 1,8 s · mỗi chiều dịch 0,3 s) → lần nói đầu không phải chờ
@@ -116,6 +116,8 @@
 - [ ] Người ngồi phía trên mở bàn phím → bàn phím vẫn hiện ở mép người kia (giới hạn của dùng chung 1 máy); ô nhập không còn bị che
 - [x] ~~Lần nói đầu tiên chờ nạp mô hình~~ → nạp sẵn ở nền
 - [ ] APK debug ~97 MB (thư viện native không nén) → kiểm tra kích thước bản release, cân nhắc App Bundle
+- [x] ~~Hàng chọn ngôn ngữ ở nửa trên không cuộn được (trôi ngược khi xoay)~~ → chip tự xuống dòng, luôn đủ 5 ngôn ngữ
+- [x] ~~Bấm tải gói làm app crash (thiếu quyền ACCESS_NETWORK_STATE)~~
 - [ ] Một vài lỗi dấu câu của vibert-capu ("Sao Bà không hiểu?…", viết hoa sau dấu phẩy)
 - [x] **Đổi ngôn ngữ giữa hội thoại** (thử trên máy 2026-10-28, liên quan F1.5) — đã sửa:
   - [x] ~~Câu cũ không được dịch sang ngôn ngữ mới~~ → tự dịch bù ngầm, giữ mọi bản dịch đã có
@@ -133,7 +135,7 @@
 
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-1. 👤 Cắm lại máy để thử các mục ⚠️ ở trên (quyền micro, nút loa, chuyền tay, Wi-Fi, tải nền, giao diện tiếng Anh)
+1. 👤 Thử các mục còn ⚠️: hỏi quyền micro (cài mới app), dùng dữ liệu di động khi tải, máy thiếu giọng offline
 2. v1: F1.1/F6.2 3–4 ghế · F7.2 cụm từ du lịch · F9.x lưu lịch sử & xuất file
 3. Phát hành: ký release, kiểm tra kích thước, chính sách quyền riêng tư
 4. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
@@ -147,3 +149,4 @@
 | 2026-10-28 | — | Thử đổi ngôn ngữ giữa hội thoại trên máy: ghi 3 lỗi (F1.5) |
 | 2026-10-28 | `3552b6c` | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |
 | 2026-10-28 | `a226e88` | F2.1, F2.5, F5.1, F5.4, F6.3, F8.2 (Wi-Fi, dung lượng, tải nền), F10.1 song ngữ — chưa thử trên máy vì mất kết nối |
+| 2026-10-28 | (commit này) | Thử trên máy các mục MVP mới; sửa crash khi tải gói, hàng chọn ngôn ngữ ở nửa trên; thêm route TTS vào Chẩn đoán |

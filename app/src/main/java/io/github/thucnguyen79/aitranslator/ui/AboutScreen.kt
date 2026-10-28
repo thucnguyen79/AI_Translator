@@ -16,6 +16,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -27,6 +28,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thucnguyen79.aitranslator.AppContainer
 import io.github.thucnguyen79.aitranslator.ConversationLayout
 import io.github.thucnguyen79.aitranslator.R
+import io.github.thucnguyen79.aitranslator.core.model.Lang
 import java.util.Locale
 
 /** Settings, diagnostics, credits and licences (CC-BY-SA and FunASR require attribution). */
@@ -89,6 +91,11 @@ private fun Diagnostics(container: AppContainer) {
     val loadTimes by container.loadTimes.collectAsStateWithLifecycle()
     val mem = ActivityManager.MemoryInfo().also { context.getSystemService(ActivityManager::class.java).getMemoryInfo(it) }
     val spoken = turns.filterNot { it.typed }
+    val voicesVersion by container.voicesVersion.collectAsStateWithLifecycle()
+    // How each language is read aloud: SYSTEM (offline voice), SUPERTONIC, or SYSTEM_ONLINE (needs network).
+    val routes by produceState(emptyMap<Lang, String>(), voicesVersion) {
+        value = Lang.entries.associateWith { lang -> runCatching { container.tts.route(lang).name }.getOrElse { "error: ${it.message}" } }
+    }
     val notLoaded = stringResource(R.string.diag_not_loaded)
     val loadTitle = stringResource(R.string.diag_load)
     val session = stringResource(R.string.diag_session, turns.size, spoken.size, turns.size - spoken.size)
@@ -97,6 +104,9 @@ private fun Diagnostics(container: AppContainer) {
         val soc = if (Build.VERSION.SDK_INT >= 31) "${Build.SOC_MANUFACTURER} ${Build.SOC_MODEL}" else Build.HARDWARE
         add("${Build.MANUFACTURER} ${Build.MODEL} · $soc")
         add("Android ${Build.VERSION.RELEASE} · ${Runtime.getRuntime().availableProcessors()} CPU · RAM %.1f GB".format(Locale.US, mem.totalMem / 1e9))
+        add("")
+        add("TTS:")
+        routes.forEach { (lang, route) -> add("  %-4s %s".format(Locale.US, lang.code, route)) }
         add("")
         add(loadTitle)
         if (loadTimes.isEmpty()) add("  $notLoaded")

@@ -11,6 +11,8 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -192,6 +194,7 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SeatPanel(
     modifier: Modifier,
@@ -229,10 +232,10 @@ private fun SeatPanel(
 
     Column(modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         if (!typing) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Lang.entries.forEach { l -> FilterChip(selected = l == lang, onClick = { onLang(l) }, label = { Text(l.nativeName) }) }
-                }
+            // Wrapping instead of a horizontal scroll: in the rotated half a scroll flings the wrong way, and all
+            // five languages plus the speaker toggle fit in two lines.
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.Center) {
+                Lang.entries.forEach { l -> FilterChip(selected = l == lang, onClick = { onLang(l) }, label = { Text(l.nativeName) }) }
                 // Read translations into this seat's language aloud, or only show them.
                 TextButton(onClick = onToggleMute, modifier = Modifier.semantics { contentDescription = s.readAloud }) {
                     Text(if (muted) "🔇" else "🔊", fontSize = 20.sp)
