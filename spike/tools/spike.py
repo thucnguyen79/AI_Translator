@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -184,22 +185,53 @@ def cmd_bergamot(_: argparse.Namespace) -> None:
     print("  ✓ Bergamot sẵn sàng để build")
 
 
+def find_adb() -> str:
+    """adb from PATH, else from the Android SDK (ANDROID_HOME / ANDROID_SDK_ROOT / local.properties)."""
+    found = shutil.which("adb")
+    if found:
+        return found
+    sdks = [os.environ.get("ANDROID_HOME"), os.environ.get("ANDROID_SDK_ROOT")]
+    props = SPIKE / "local.properties"
+    if props.is_file():
+        for line in props.read_text(encoding="utf-8").splitlines():
+            if line.startswith("sdk.dir="):
+                sdks.append(line.split("=", 1)[1].replace("\\:", ":").replace("\\\\", "\\"))
+    for sdk in filter(None, sdks):
+        for name in ("adb.exe", "adb"):
+            exe = Path(sdk) / "platform-tools" / name
+            if exe.is_file():
+                return str(exe)
+    sys.exit("Không tìm thấy adb: thêm <Android SDK>/platform-tools vào PATH hoặc đặt ANDROID_HOME")
+
+
 def adb(*args: str, check: bool = True) -> subprocess.CompletedProcess:
-    exe = shutil.which("adb") or "adb"
-    return subprocess.run([exe, *args], check=check, text=True, capture_output=True)
+    result = subprocess.run([find_adb(), *args], text=True, capture_output=True, encoding="utf-8", errors="replace")
+    if check and result.returncode != 0:
+        sys.exit(f"adb {' '.join(args)} lỗi:\n{result.stderr.strip() or result.stdout.strip()}")
+    return result
+
+
+def push_tree(local: Path, remote: str) -> None:
+    """Pushes a folder file by file. Some phones (e.g. ColorOS 14) refuse to let `adb push` create folders
+    under Android/data ("secure_mkdirs() failed"), while `adb shell mkdir -p` works, so folders come first."""
+    dirs = [local, *sorted(d for d in local.rglob("*") if d.is_dir())]
+    remote_dirs = [f"{remote}/{d.relative_to(local).as_posix()}".rstrip("/.") for d in dirs]
+    adb("shell", "mkdir", "-p", *remote_dirs)
+    for d, rd in zip(dirs, remote_dirs):
+        files = sorted(str(f) for f in d.iterdir() if f.is_file())
+        if files:
+            print(f"  → {rd.removeprefix(DEVICE_ROOT + '/')} ({len(files)} file)")
+            adb("push", "--sync", *files, rd + "/")
 
 
 def cmd_push(args: argparse.Namespace) -> None:
-    adb("shell", "mkdir", "-p", f"{DEVICE_ROOT}/models", f"{DEVICE_ROOT}/testset")
     for sub in ("asr", "vad", "bergamot"):
         src = MODELS / sub
         if src.is_dir():
-            print(f"  → models/{sub}")
-            adb("push", str(src), f"{DEVICE_ROOT}/models/")
+            push_tree(src, f"{DEVICE_ROOT}/models/{sub}")
     audio = SPIKE / "testset" / "audio"
     if args.audio and audio.is_dir():
-        print("  → testset/audio")
-        adb("push", str(audio), f"{DEVICE_ROOT}/testset/")
+        push_tree(audio, f"{DEVICE_ROOT}/testset/audio")
 
 
 def cmd_pull(_: argparse.Namespace) -> None:
@@ -274,8 +306,9 @@ def cmd_report(_: argparse.Namespace) -> None:
 
 
 def main() -> None:
-    if hasattr(sys.stdout, "reconfigure"):  # Windows consoles default to cp1252
-        sys.stdout.reconfigure(encoding="utf-8")
+    for stream in (sys.stdout, sys.stderr):  # Windows consoles default to cp1252
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = p.add_subparsers(dest="cmd", required=True)
     sub.add_parser("deps", help="tải sherpa-onnx AAR").set_defaults(fn=cmd_deps)
