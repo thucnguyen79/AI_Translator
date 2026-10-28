@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thucnguyen79.aitranslator.AppContainer
 import io.github.thucnguyen79.aitranslator.R
+import io.github.thucnguyen79.aitranslator.core.packs.ModelLocator
 import io.github.thucnguyen79.aitranslator.core.packs.Pack
 import io.github.thucnguyen79.aitranslator.core.packs.PackKind
 import io.github.thucnguyen79.aitranslator.core.packs.PackState
@@ -200,14 +201,14 @@ private fun PackCard(
 @Composable
 internal fun title(pack: Pack): String = when (pack.kind) {
     PackKind.LANGUAGE -> pack.langs.single().nativeName
-    PackKind.OPTIONAL -> stringResource(if (pack.id == "lid") R.string.pack_lid else R.string.pack_supertonic)
+    PackKind.OPTIONAL -> stringResource(if (pack.id == ModelLocator.LID_PACK) R.string.pack_lid else R.string.pack_supertonic)
     PackKind.SHARED -> stringResource(if (pack.id == "core") R.string.pack_core else R.string.pack_speech_multi)
 }
 
 @Composable
 private fun subtitle(pack: Pack): String = when (pack.kind) {
     PackKind.LANGUAGE -> stringResource(R.string.pack_language_subtitle)
-    PackKind.OPTIONAL -> if (pack.id == "lid") stringResource(R.string.pack_lid_subtitle)
+    PackKind.OPTIONAL -> if (pack.id == ModelLocator.LID_PACK) stringResource(R.string.pack_lid_subtitle)
     else stringResource(R.string.pack_supertonic_subtitle, pack.langs.joinToString { it.nativeName })
     PackKind.SHARED -> ""
 }

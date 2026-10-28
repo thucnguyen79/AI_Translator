@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "core" / "packs" / "src" / "main" / "assets" / "packs.json"
-CATALOG_VERSION = 2
+CATALOG_VERSION = 3
 
 SHERPA = "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/{tag}"
 FIREFOX = "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/translations-models/records"
@@ -29,9 +29,11 @@ VAD = ("asr-models", "silero_vad.onnx")
 ASR_VI = ("asr-models", "sherpa-onnx-zipformer-vi-30M-int8-2026-02-09.tar.bz2")
 ASR_MULTI = ("asr-models", "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2")
 TTS_SUPERTONIC = ("tts-models", "sherpa-onnx-supertonic-3-tts-int8-2026-05-11.tar.bz2")
-# Spoken language identification (F3.4): Whisper tiny's int8 encoder + decoder (tokens are not needed for LID).
-LID_REPO = "csukuangfj/sherpa-onnx-whisper-tiny"
-LID_FILES = {"tiny-encoder.int8.onnx": "encoder.int8.onnx", "tiny-decoder.int8.onnx": "decoder.int8.onnx"}
+# Spoken language identification (F3.4): Whisper base's int8 encoder + decoder (tokens are not needed for LID).
+# Base rather than tiny (103 MB): on sample speech 56/56 language pairs right vs 52/56, and far better on
+# far-field audio (see docs/checklist.md).
+LID_REPO = "csukuangfj/sherpa-onnx-whisper-base"
+LID_FILES = {"base-encoder.int8.onnx": "encoder.int8.onnx", "base-decoder.int8.onnx": "decoder.int8.onnx"}
 PUNCT_REPO = "welcomyou/vibert-capu-onnx"
 PUNCT_FILES = {"vibert-capu.int8.onnx": "vibert-capu.int8.onnx", "vocab.txt": "vocab.txt", "vocabulary/labels.txt": "labels.txt"}
 # Small text files are not in Git LFS, so Hugging Face reports no hash: pinned here (checked when generated).
@@ -137,8 +139,8 @@ def main() -> None:
     packs.append({"id": "tts-supertonic", "kind": "optional", "langs": ["vi", "en", "ko", "ja"], "requires": [],
                   "license": "OpenRAIL-M (Supertonic 3)",
                   "files": [sherpa_file(TTS_SUPERTONIC, "tts", extract=True)]})
-    packs.append({"id": "lid", "kind": "optional", "langs": [], "requires": [],
-                  "license": "MIT (Whisper tiny, OpenAI)",
+    packs.append({"id": "lid-base", "kind": "optional", "langs": [], "requires": [],
+                  "license": "MIT (Whisper base, OpenAI)",
                   "files": hf_files(LID_REPO, LID_FILES, "lid")})
 
     OUT.parent.mkdir(parents=True, exist_ok=True)

@@ -13,7 +13,7 @@
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
 | 2 — MVP (2 người) | ✅ Xong | Đủ các mục MVP, đã thử trên máy; còn vài trường hợp chưa tái hiện được (⚠️) |
-| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Gần đủ tính năng v1 (đã thử trên máy); còn F3.2, F3.5, phát hành; nhận diện ngôn ngữ nói chưa đủ tin cậy với tiếng Việt |
+| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Gần đủ tính năng v1 (đã thử trên máy); còn F3.2, F3.5, phát hành; nhận diện ngôn ngữ nói (Whisper base) cần thử với người thật |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
 ## Giai đoạn 0 — Spike ([spike/README.md](../spike/README.md))
@@ -102,11 +102,12 @@
 - [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
 - [x] F1.3 Màu & tên ghế: mỗi người một màu + số thứ tự (thử trên máy ✓); đặt tên trong tab Thông tin, hiện ở vùng của người đó, nút nói, bong bóng, lịch sử và file chia sẻ — thử trên máy ✓
 - [x] F2.6 Chế độ rảnh tay (menu ⋮ ở vùng người cầm máy, hoặc nút 🎧 ở Chuyền tay): nói xong máy tự nghe tiếp; bấm mic của ai thì người đó nói ngay; lỗi micro thì tự tắt — thử trên máy ✓ (không có gói nhận diện: tự nghe người 1, đã thu và dịch được một câu nói thật)
-- [ ] F3.4 Nhận diện ngôn ngữ nói 🟡 — gói tuỳ chọn "Nhận diện ngôn ngữ nói" (Whisper tiny int8, **103 MB**); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt. Tải và chạy trên máy ✓. Đo:
-  - Để Whisper tự chọn trong 99 ngôn ngữ (API của sherpa-onnx): tiếng Việt sai 7/12 (ra zh, th, ms, ar) → **bỏ**, tự chạy mô hình bằng ONNX Runtime và chỉ so các ngôn ngữ đang có ở bàn: đúng 26/28 cặp ngôn ngữ trên file mẫu sạch (vi↔zh đúng hết)
-  - Phát file mẫu qua loa máy tính cho điện thoại nghe: tiếng Trung luôn đúng; tiếng Việt lúc đúng lúc sai — âm thanh thu từ xa làm điểm vi/zh gần sát nhau (+0,24 thay vì +8)
-  - Đã thêm luật theo lượt: chênh lệch dưới 2 điểm thì chọn người đến lượt (đúng khi hai người nói xen kẽ, sai khi một người nói 2 câu liền)
-  - 👤 Cần thử với người thật nói gần máy; nếu vẫn kém: cân nhắc Whisper base (~200 MB) hoặc chỉ dùng rảnh tay kiểu lần lượt
+- [x] F3.4 Nhận diện ngôn ngữ nói: gói tuỳ chọn "Nhận diện ngôn ngữ nói" (**Whisper base int8, 160 MB**; thay bản tiny 103 MB, bản cũ tự xoá khỏi máy); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt. Thử trên máy ✓ (phát file mẫu qua loa: zh → vi → vi → zh → vi đúng 5/5). Cách làm và số đo:
+  - Chỉ so các ngôn ngữ đang có ở bàn (tự chạy mô hình bằng ONNX Runtime) thay vì để Whisper chọn trong 99 ngôn ngữ — tiny tự chọn: tiếng Việt sai 7/12 (ra zh, th, ms, ar)
+  - Cặp ngôn ngữ đúng trên file mẫu (sạch / mô phỏng thu từ xa): tiny 52/56 · 30/56 → base 56/56 · 37/56 → base + bù +2 điểm cho tiếng Việt (Whisper nghiêng về tiếng Trung) **56/56 · 50/56**
+  - Luật theo lượt chỉ làm trọng tài khi gần hoà (0,5 điểm): ngưỡng 2 làm "một người nói liền 2 câu" chỉ đúng 25/56 khi thu từ xa
+  - Chậm hơn: nhận dạng mỗi câu ~1,3 s sau khi nói xong (có nhận diện ngôn ngữ), nạp mô hình 0,8 s
+  - ⚠️ Mới đo trên 7 file mẫu + phát qua loa; 👤 cần thử với người thật nói gần máy
 - [ ] F3.2 Chữ tạm thời · F3.5 Mô hình theo cấu hình máy
 - [x] F4.5 Dịch ngược để kiểm tra: bật trong tab Thông tin, hiện "↩ Dịch ngược: …" dưới câu của người nói, chạy sau khi đọc xong — thử trên máy ✓ (đã bắt được bản dịch sai của câu gõ không dấu)
 - [x] F5.3 Tốc độ đọc Chậm/Bình thường/Nhanh; chọn giọng từng ngôn ngữ (Tự động / Giọng 1, 2… của máy / Supertonic) có nút ▶ nghe thử — thử trên máy ✓ (tiếng Việt có 6 giọng offline; chọn, nghe thử, trả về Tự động)
@@ -132,6 +133,8 @@
 - [x] ~~Quanh bàn: nút nói ở hai vùng bên quá nhỏ~~ → bỏ ⌨/🔊 khỏi thanh công cụ vùng bên, vùng giữa cao hơn
 - [x] ~~Tên giọng khó hiểu ("vi-vn-x-gft-local")~~ → "Giọng 1, 2…"
 - [ ] Chuyền tay 4 người: khung hội thoại còn thấp (4 hàng chọn ngôn ngữ + 4 hàng nút); ẩn khi đang gõ
+- [ ] Rảnh tay: câu nói ra đúng lúc máy đang đọc bản dịch thì bị bỏ lỡ (máy không nghe khi đang đọc, để không tự dịch giọng của chính nó)
+- [ ] Nhận diện ngôn ngữ thêm ~1 s mỗi câu (bộ mã hoá Whisper luôn xử lý khung 30 s) → có thể chạy song song với nhận dạng
 - [ ] Một vài lỗi dấu câu của vibert-capu ("Sao Bà không hiểu?…", viết hoa sau dấu phẩy)
 - [x] **Đổi ngôn ngữ giữa hội thoại** (thử trên máy 2026-10-28, liên quan F1.5) — đã sửa:
   - [x] ~~Câu cũ không được dịch sang ngôn ngữ mới~~ → tự dịch bù ngầm, giữ mọi bản dịch đã có
@@ -176,3 +179,4 @@
 | 2026-10-28 | `fb828f0` | Thanh công cụ gọn + nền phân vùng (yêu cầu mới), F6.2 Quanh bàn, F2.6 rảnh tay, F3.4 gói nhận diện ngôn ngữ (103 MB), chọn giọng, tên từng người — chưa thử trên máy (máy chưa cắm) |
 | 2026-10-28 | `f5abf50` | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
 | 2026-10-28 | `157b90b` | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |
+| 2026-10-28 | _(commit này)_ | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |

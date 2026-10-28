@@ -15,12 +15,13 @@ import java.nio.FloatBuffer
 import java.nio.LongBuffer
 
 /**
- * Spoken language identification with Whisper tiny (int8, sherpa-onnx export) run directly on ONNX Runtime:
+ * Spoken language identification with Whisper (base, int8, sherpa-onnx export) run directly on ONNX Runtime:
  * one encoder pass and one decoder step from the start-of-transcript token, then the highest-scoring
  * language token among the candidates only. Choosing among the languages at the table instead of all 99
  * matters: on sample speech Vietnamese came out as Chinese, Thai or Arabic about half the time otherwise.
  * Speech picked up from a distance is often ambiguous (Vietnamese vs Chinese within a fraction of a logit),
- * so a narrow win does not override whose turn it is (see [choose]).
+ * so a narrow win does not override whose turn it is (see [choose]). Whisper also leans towards Chinese
+ * (far more Chinese than Vietnamese in its training data), which [BIAS] offsets.
  */
 class WhisperLanguageId(dir: File, threads: Int = 2) : LanguageIdentifier, AutoCloseable {
     private val env = OrtEnvironment.getEnvironment()
@@ -52,7 +53,7 @@ class WhisperLanguageId(dir: File, threads: Int = 2) : LanguageIdentifier, AutoC
         if (options.size <= 1) return@withContext options.firstOrNull()
         mutex.withLock {
             val logits = firstStepLogits(WhisperMel.compute(utterance.samples))
-            choose(options.associateWith { logits[langTokens.getValue(it)] }, expected)
+            choose(options.associateWith { logits[langTokens.getValue(it)] + (BIAS[it] ?: 0f) }, expected)
         }
     }
 
@@ -86,8 +87,18 @@ class WhisperLanguageId(dir: File, threads: Int = 2) : LanguageIdentifier, AutoC
     }
 
     companion object {
-        /** How far (in logits) another language must beat the expected one to take the turn. */
-        const val MARGIN = 2f
+        /**
+         * How far (in logits) another language must beat the expected one to take the turn. Only a tie-breaker:
+         * long speech is often cut into several utterances by the same person, and at 2 logits far-field
+         * "same speaker again" fell to 25/56 language pairs (0.5: 46/56, alternating turns 53/56).
+         */
+        const val MARGIN = 0.5f
+
+        /**
+         * Added to a language's score. Tuned on sample speech (7 clips, clean and simulated far-field): +2 for
+         * Vietnamese took far-field language pairs from 37/56 to 50/56 without losing any clean ones.
+         */
+        val BIAS = mapOf(Lang.VI to 2f)
 
         /** The best-scoring language, unless it beats [expected] by less than [MARGIN]. */
         fun choose(scores: Map<Lang, Float>, expected: Lang?): Lang {

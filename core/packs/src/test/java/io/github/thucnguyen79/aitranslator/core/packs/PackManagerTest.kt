@@ -74,6 +74,22 @@ class PackManagerTest {
         assertEquals("t", File(locator.asrDir(Lang.VI), "tokens.txt").readText())
     }
 
+    @Test fun packsNoLongerInTheCatalogAreRemoved() {
+        val root = tmp.newFolder("packs")
+        File(root, "lid/lid").mkdirs()
+        File(root, "lid/.installed").writeText("2")
+        File(root, "core").mkdirs()
+        File(root, ".downloads").mkdirs()
+        val catalog = PackCatalog(3, listOf(Pack("core", PackKind.SHARED, emptyList(), emptyList(), "", emptyList())))
+
+        val removed = PackManager(root, catalog, CoroutineScope(SupervisorJob() + Dispatchers.IO)).removeRetiredPacks()
+
+        assertTrue("lid" in removed || !File(root, "lid").exists())
+        assertFalse(File(root, "lid").exists())
+        assertTrue(File(root, "core").isDirectory)
+        assertTrue(File(root, ".downloads").isDirectory)
+    }
+
     @Test fun concurrentInstallsShareRequirementsSafely() = runBlocking {
         val vad = tmp.newFile("vad.onnx").apply { writeText("v".repeat(200_000)) }
         val vi = tmp.newFile("vi.bin").apply { writeText("vi") }

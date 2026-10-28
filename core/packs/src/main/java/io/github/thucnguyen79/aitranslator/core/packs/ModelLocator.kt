@@ -23,5 +23,10 @@ class ModelLocator(private val packs: PackManager) {
     val supertonicDir: File? get() = File(packs.dir("tts-supertonic"), "tts").takeIf { packs.isInstalled("tts-supertonic") }
 
     /** Null when the optional language-identification pack is not installed. */
-    val lidDir: File? get() = File(packs.dir("lid"), "lid").takeIf { packs.isInstalled("lid") }
+    val lidDir: File? get() = File(packs.dir(LID_PACK), "lid").takeIf { packs.isInstalled(LID_PACK) }
+
+    companion object {
+        /** Spoken language identification (Whisper base); replaced the 103 MB Whisper tiny pack "lid". */
+        const val LID_PACK = "lid-base"
+    }
 }

@@ -45,7 +45,22 @@ class PackManager(
     private val _states = MutableStateFlow(catalog.packs.associate { it.id to initialState(it) })
     val states: StateFlow<Map<String, PackState>> = _states.asStateFlow()
 
+    init {
+        scope.launch { removeRetiredPacks() }
+    }
+
     fun dir(packId: String) = File(root, packId)
+
+    /**
+     * Deletes installed packs the catalog no longer lists (e.g. a model replaced by a better one under a new
+     * id), so they do not keep using storage. Returns the removed pack ids.
+     */
+    fun removeRetiredPacks(): List<String> {
+        val known = catalog.packs.map { it.id }.toSet()
+        return root.listFiles { f -> f.isDirectory && !f.name.startsWith(".") && f.name !in known }.orEmpty()
+            .filter { it.deleteRecursively() }
+            .map { it.name }
+    }
 
     fun isInstalled(packId: String) = marker(packId).isFile
 
