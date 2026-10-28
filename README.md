@@ -10,7 +10,8 @@ trực tiếp qua **một điện thoại dùng chung**.
 ## Trạng thái
 
 - **Giai đoạn 0 — spike:** xong phần lớn, kết quả đo trên máy thật ở [spike/README.md](spike/README.md).
-- **Giai đoạn 1 — nền tảng:** dự án đa module, quản lý gói ngôn ngữ, engine hội thoại, màn hình hội thoại 2 người.
+- **Giai đoạn 1 — nền tảng:** xong — dự án đa module, quản lý gói ngôn ngữ, engine hội thoại, màn hình hội thoại 2 người.
+- **Giai đoạn 2 — MVP:** đang làm. Chi tiết từng hạng mục: [docs/checklist.md](docs/checklist.md).
 
 ## Build
 
@@ -42,6 +43,7 @@ Lần build đầu biên dịch Marian/Bergamot bằng NDK nên mất vài phút
 
 | Tài liệu | Nội dung |
 |---|---|
+| [docs/checklist.md](docs/checklist.md) | **Tiến độ:** việc đã xong, đang làm, tiếp theo |
 | [docs/requirements.md](docs/requirements.md) | Tầm nhìn, quyết định phạm vi, kịch bản, yêu cầu phi chức năng, rủi ro |
 | [docs/backlog.md](docs/backlog.md) | Danh sách tính năng chi tiết theo mức ưu tiên MVP / v1 / v2 |
 | [docs/architecture.md](docs/architecture.md) | Kiến trúc, lựa chọn mô hình, gói ngôn ngữ, lộ trình |
