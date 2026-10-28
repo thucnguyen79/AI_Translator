@@ -21,6 +21,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import time
 import urllib.request
 from pathlib import Path
 
@@ -225,6 +226,17 @@ def push_tree(local: Path, remote: str) -> None:
 
 
 def cmd_push(args: argparse.Namespace) -> None:
+    # Folders created by adb before the app's first launch belong to `shell` and the app cannot read
+    # them, so let the app create its own external files dir first.
+    if adb("shell", "ls", DEVICE_ROOT, check=False).returncode != 0:
+        print("  ▶ mở app lần đầu để tạo thư mục dữ liệu")
+        adb("shell", "am", "start", "-n", f"{PACKAGE}/.MainActivity")
+        for _ in range(20):
+            time.sleep(0.5)
+            if adb("shell", "ls", DEVICE_ROOT, check=False).returncode == 0:
+                break
+        else:
+            sys.exit("App chưa tạo thư mục dữ liệu: cài app (gradlew installDebug) và mở nó một lần")
     for sub in ("asr", "vad", "bergamot"):
         src = MODELS / sub
         if src.is_dir():

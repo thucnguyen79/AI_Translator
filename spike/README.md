@@ -38,7 +38,7 @@ python tools/spike.py deps                                   # sherpa-onnx AAR (
 python tools/spike.py bergamot                               # mã nguồn Bergamot (submodule)
 python tools/spike.py models --vad --asr vi-zipformer-30m sensevoice-2024 --mt vi zh ko ja
 ./gradlew installDebug                                       # hoặc gradlew.bat trên Windows
-python tools/spike.py push                                   # đẩy models/ lên máy
+python tools/spike.py push                                   # đẩy models/ lên máy (tự mở app lần đầu)
 ```
 
 Trên máy: mở app → tab **Mô hình** kiểm tra đủ ✓ → **Ghi âm** bộ thử → chạy **ASR**, **Dịch**, **TTS** → thử **Hội thoại**.
@@ -80,4 +80,40 @@ Tab **Mô hình** cho biết APK có thư viện Bergamot hay không.
 
 ## Kết quả
 
-Chưa đo. Sau mỗi đợt đo, dán bảng từ `python tools/spike.py report` vào đây kèm nhận xét và quyết định.
+Sau mỗi đợt đo, dán bảng từ `python tools/spike.py report` vào đây kèm nhận xét và quyết định.
+
+### Đợt 1 — 2026-10-28 · OPPO CPH2357 (MediaTek Dimensity, 8 nhân, RAM 12 GB, Android 14)
+
+**Dịch** — 100 câu du lịch, từng câu một; chrF tính trên máy, 1 bản tham chiếu:
+
+| Hướng | Qua en | Bergamot chrF | ML Kit chrF | Bergamot TB / p95 (ms) | ML Kit TB / p95 (ms) |
+|---|---|---|---|---|---|
+| vi→en |  | **63.2** | 59.7 | 12 / 16 | 20 / 26 |
+| en→vi |  | **63.9** | 61.0 | 33 / 45 | 20 / 25 |
+| vi→zh | có | 36.0 | **36.3** | 41 / 53 | 38 / 52 |
+| zh→vi | có | **57.3** | 53.3 | 66 / 88 | 36 / 48 |
+| vi→ko | có | **24.8** | 21.1 | 44 / 59 | 40 / 52 |
+| ko→vi | có | **54.5** | 44.8 | 64 / 82 | 36 / 50 |
+| vi→ja | có | **38.5** | 37.2 | 43 / 59 | 43 / 56 |
+| ja→vi | có | **57.4** | 50.2 | 69 / 88 | 37 / 51 |
+
+Bergamot: nạp 8 mô hình 1,0 s, RAM +434 MB.
+
+- Bergamot **ngang hoặc tốt hơn** ML Kit ở cả 8 hướng → đạt tiêu chí, giữ Bergamot làm bộ dịch chính.
+- Tốc độ không phải vấn đề: < 100 ms/câu kể cả khi dịch qua tiếng Anh.
+- Điểm yếu chung của cả hai: **văn nói du lịch tiếng Việt → tiếng Anh**, lỗi lan sang mọi hướng vi→zh/ko/ja.
+  Ví dụ "Cho tôi xem thực đơn" → "Can I show you the menu?", "Cho tôi mang về" → "Let me bring it back",
+  "Tôi bị móc túi" → "I've been pick-ached", "Làm ơn bật đồng hồ tính tiền" → "Please turn on the cashier".
+  → Ưu tiên **cụm từ du lịch soạn sẵn** (F7.2) và **dịch ngược để kiểm tra** (F4.5); cân nhắc mô hình lớn hơn cho vi→en ở v2.
+- chrF của hướng sang zh/ko/ja thấp hơn một phần do chấm theo ký tự với 1 bản tham chiếu; cần chấm tay để kết luận.
+
+**TTS (Google TTS của máy)**:
+
+| vi | en | zh | ko | ja |
+|---|---|---|---|---|
+| ✓ 683 ms | ✓ 805 ms | ✓ 719 ms | ✓ 762 ms | ✗ chưa có giọng offline |
+
+- 4/5 ngôn ngữ có giọng offline sẵn; tiếng Nhật phải tải dữ liệu giọng → app cần hướng dẫn tải (F5.4).
+- Thời gian tới khi phát 0,5–0,8 s là đáng kể trong ngân sách độ trễ; cần đo lại sau lần gọi đầu.
+
+**ASR**: chưa đo — cần ghi âm bộ thử (tab **Ghi âm**).
