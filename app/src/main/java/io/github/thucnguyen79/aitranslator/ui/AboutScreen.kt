@@ -156,7 +156,15 @@ private fun Voices(container: AppContainer) {
         var open by remember { mutableStateOf(false) }
         val auto = stringResource(R.string.voice_auto)
         val supertonic = stringResource(R.string.voice_supertonic)
-        val label = { voice: String? -> when (voice) { null -> auto; SUPERTONIC_VOICE -> supertonic; else -> voice } }
+        val numbered = stringResource(R.string.voice_n)
+        // System voice names ("vi-vn-x-gft-local") mean nothing to people: number them instead.
+        val label = { voice: String? ->
+            when (voice) {
+                null -> auto
+                SUPERTONIC_VOICE -> supertonic
+                else -> options.indexOf(voice).takeIf { it >= 0 }?.let { numbered.format(it + 1) } ?: voice
+            }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(lang.nativeName, modifier = Modifier.weight(0.35f))
             Box(Modifier.weight(0.65f)) {

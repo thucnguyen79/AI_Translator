@@ -90,4 +90,5 @@
     <string name="voice_none">Chưa có giọng offline</string>
     <string name="pack_lid">Nhận diện ngôn ngữ nói</string>
     <string name="pack_lid_subtitle">Chế độ rảnh tay: ai nói cũng được, máy tự nhận ra theo ngôn ngữ</string>
+    <string name="voice_n">Giọng %1$d</string>
 </resources>

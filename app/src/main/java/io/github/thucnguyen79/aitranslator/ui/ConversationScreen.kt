@@ -256,16 +256,16 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
             else -> base * 0.6f
         }
         val around = layout == ConversationLayout.AROUND && seatLangs.size > 2
-        Panel(1, Modifier.weight(weightOf(1, base = if (around) 0.3f else 1f)).fillMaxWidth().turned(180))
+        Panel(1, Modifier.weight(weightOf(1, base = if (around) 0.28f else 1f)).fillMaxWidth().turned(180))
         HorizontalDivider(thickness = 2.dp)
         if (around) {
-            Row(Modifier.weight(weightOf(2, 3, base = 0.4f)).fillMaxWidth()) {
+            Row(Modifier.weight(weightOf(2, 3, base = 0.44f)).fillMaxWidth()) {
                 Panel(2, Modifier.weight(1f).fillMaxHeight().turned(90))
                 if (seatLangs.size > 3) Panel(3, Modifier.weight(1f).fillMaxHeight().turned(270))
             }
             HorizontalDivider(thickness = 2.dp)
         }
-        Panel(0, Modifier.weight(weightOf(0, base = if (around) 0.3f else 1f)).fillMaxWidth())
+        Panel(0, Modifier.weight(weightOf(0, base = if (around) 0.28f else 1f)).fillMaxWidth())
     }
 }
 
@@ -343,6 +343,8 @@ private fun SeatPanel(
             }
         }
 
+        // Sideways areas are narrow: typing and the speaker toggle move from the toolbar into the language picker.
+        val narrow = turn % 180 == 90
         if (choosingLang) {
             // Chosen in place, so the choice is turned towards this person like the rest of the area.
             FlowRow(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -351,6 +353,13 @@ private fun SeatPanel(
                         onLang(l)
                         choosingLang = false
                     }, label = { Text(l.nativeName, fontSize = 16.sp) })
+                }
+                if (narrow) {
+                    ToolIcon(if (muted) "🔇" else "🔊", s.readAloud, onClick = onToggleMute)
+                    ToolIcon(if (typing) "✕" else "⌨", if (typing) s.hideKeyboard else s.type, enabled = ready) {
+                        onTyping(!typing)
+                        choosingLang = false
+                    }
                 }
             }
         } else {
@@ -399,11 +408,11 @@ private fun SeatPanel(
                 contentPadding = ButtonDefaults.TextButtonContentPadding,
                 modifier = Modifier.semantics { contentDescription = s.language },
             ) { Text("${lang.nativeName} ▾", maxLines = 1) }
-            ToolIcon(if (typing) "✕" else "⌨", if (typing) s.hideKeyboard else s.type, enabled = ready) { onTyping(!typing) }
+            if (!narrow || typing) ToolIcon(if (typing) "✕" else "⌨", if (typing) s.hideKeyboard else s.type, enabled = ready) { onTyping(!typing) }
             // Phrases carry their own translations, so they work before any pack is installed.
             ToolIcon("📖", s.phrasebook, onClick = onPhrasebook)
             // Read translations into this seat's language aloud, or only show them.
-            ToolIcon(if (muted) "🔇" else "🔊", s.readAloud, onClick = onToggleMute)
+            if (!narrow) ToolIcon(if (muted) "🔇" else "🔊", s.readAloud, onClick = onToggleMute)
             if (holder != null) {
                 Box {
                     ToolIcon("⋮", s.more) { menu = true }

@@ -97,4 +97,5 @@
     <string name="voice_none">No offline voice</string>
     <string name="pack_lid">Spoken language detection</string>
     <string name="pack_lid_subtitle">Hands-free mode: anyone can speak, the app tells who from the language</string>
+    <string name="voice_n">Voice %1$d</string>
 </resources>
