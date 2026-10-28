@@ -86,7 +86,7 @@
 |---|---|---|---|
 | F9.1 | Tự lưu phiên | Lưu văn bản (không lưu âm thanh) vào CSDL cục bộ | v1 |
 | F9.2 | Xem, tìm kiếm | | v1 |
-| F9.3 | Xoá phiên / xoá tất cả | | v1 |
+| F9.3 | Xoá phiên / xoá tất cả | MVP: nút xoá hội thoại đang hiển thị (có xác nhận); v1: xoá từng phiên đã lưu / xoá tất cả | MVP (phiên hiện tại) · v1 |
 | F9.4 | Xuất TXT song ngữ / chia sẻ | Qua share sheet của Android | v1 |
 | F9.5 | Tắt lưu lịch sử | Chế độ riêng tư | v1 |
 

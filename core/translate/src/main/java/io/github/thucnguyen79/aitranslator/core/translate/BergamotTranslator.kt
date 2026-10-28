@@ -18,9 +18,12 @@ class BergamotTranslator(private val modelDir: (key: String) -> File) : Translat
     private val mutex = Mutex()
     private val loaded = HashSet<String>()
 
-    /** Loads the models [from]→[to] needs; translating loads them too, this only moves the cost earlier. */
-    suspend fun prepare(from: Lang, to: Lang) = withContext(Dispatchers.Default) {
-        mutex.withLock { legs(from, to).forEach(::load) }
+    /**
+     * Loads the models [from]→[to] needs; translating loads them too, this only moves the cost earlier.
+     * Returns true when a model was loaded by this call.
+     */
+    suspend fun prepare(from: Lang, to: Lang): Boolean = withContext(Dispatchers.Default) {
+        mutex.withLock { legs(from, to).map(::load).any { it } }
     }
 
     override suspend fun translate(text: String, from: Lang, to: Lang): String = withContext(Dispatchers.Default) {
@@ -37,10 +40,11 @@ class BergamotTranslator(private val modelDir: (key: String) -> File) : Translat
         loaded.clear()
     }
 
-    private fun load(key: String) {
-        if (key in loaded) return
+    private fun load(key: String): Boolean {
+        if (key in loaded) return false
         BergamotNative.loadModel(key, config(modelDir(key)))
         loaded += key
+        return true
     }
 
     private fun legs(from: Lang, to: Lang): List<String> = when {

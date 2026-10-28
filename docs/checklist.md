@@ -1,6 +1,6 @@
 # Checklist tiến độ — AI Translator
 
-> Cập nhật: **2026-10-28** · commit gần nhất `04469d4` · cập nhật file này sau mỗi đợt làm việc.
+> Cập nhật: **2026-10-28** · cập nhật file này sau mỗi đợt làm việc (xem nhật ký cuối file).
 >
 > Ký hiệu: `[x]` xong · `[ ]` chưa làm · 🟡 làm một phần (ghi rõ còn thiếu gì) · 👤 cần anh/chị làm hoặc hỗ trợ.
 > Mã F… tham chiếu [backlog.md](backlog.md).
@@ -12,7 +12,7 @@
 | Phân tích & thiết kế | ✅ Xong | [requirements.md](requirements.md), [backlog.md](backlog.md), [architecture.md](architecture.md) |
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
-| 2 — MVP (2 người) | 🟡 Đang làm | Hội thoại vi↔en chạy trên máy thật; còn chữ lớn, chẩn đoán, hoàn thiện UX |
+| 2 — MVP (2 người) | 🟡 Đang làm | Hội thoại, chữ lớn, chẩn đoán, xoá hội thoại chạy trên máy thật; còn hoàn thiện UX |
 | 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | ⬜ Chưa bắt đầu | Một số phần đã có sẵn trong engine |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
@@ -69,9 +69,10 @@
 - [x] F6.1 Hai người chia đôi, nửa trên xoay 180°
 - [ ] F6.3 Bố cục danh sách (chuyền tay)
 - [x] F6.4 Bong bóng câu gốc + bản dịch
-- [ ] F6.6 **Chữ lớn toàn màn hình** (giơ cho người đối diện đọc)
-- [ ] F6.7 Phát lại / sao chép 🟡 — có nghe lại; **chưa** có sao chép
+- [x] F6.6 Chữ lớn toàn màn hình: chạm bong bóng → bản dịch tự quay về người cần đọc, có nút xoay
+- [x] F6.7 Nghe lại + sao chép (trong màn hình chữ lớn)
 - [x] F6.8 Giữ màn hình sáng
+- [x] Ô nhập và nút không còn bị bàn phím che; nửa đang gõ được nhường chỗ
 
 ### F7–F8. Bàn phím & gói ngôn ngữ
 - [x] F7.1 Nhập bằng bàn phím
@@ -80,10 +81,14 @@
 - [x] F8.3 Kiểm tra SHA-256
 - [x] F8.4 Xoá gói
 
+### F9. Lịch sử
+- [ ] F9.3 Xoá hội thoại 🟡 — có nút xoá hội thoại đang hiển thị (kèm xác nhận, chỉ ở nửa của người cầm máy); xoá phiên đã lưu / xoá tất cả chờ F9.1 (v1)
+
 ### F10. Cài đặt & chẩn đoán
 - [ ] F10.1 Giao diện vi + en 🟡 — chữ đang viết thẳng tiếng Việt trong code; cần chuyển sang `strings.xml` + bản tiếng Anh
-- [ ] F10.3 **Màn hình chẩn đoán** (thời gian ASR/dịch/đọc mỗi lượt — engine đã đo sẵn)
+- [x] F10.3 Chẩn đoán (tab Thông tin): thời gian nhận dạng/dịch dưới mỗi câu, thời gian nạp mô hình, trung bình phiên, thông tin máy
 - [x] F10.4 Giấy phép & ghi nguồn
+- [x] Nạp sẵn mô hình khi mở app / đổi ngôn ngữ (trên máy thử: VAD 0,05 s · nhận dạng vi 2,0 s · zh 1,8 s · mỗi chiều dịch 0,3 s) → lần nói đầu không phải chờ
 
 ## v1 — đã có sẵn một phần
 
@@ -107,23 +112,22 @@
 
 - [x] ~~Cuộn ở nửa trên bị trôi ngược~~ (sửa `04469d4`)
 - [x] ~~Tải 2 gói cùng lúc tranh chấp gói dùng chung; gói English lỗi ENOENT~~ (sửa `d72459c`)
-- [ ] Người ngồi phía trên mở bàn phím → bàn phím hiện ở mép người kia và che nửa dưới
-- [ ] Lần nói đầu tiên chờ nạp mô hình 1–2 s → nạp trước khi vào màn hình hội thoại
+- [ ] Người ngồi phía trên mở bàn phím → bàn phím vẫn hiện ở mép người kia (giới hạn của dùng chung 1 máy); ô nhập không còn bị che
+- [x] ~~Lần nói đầu tiên chờ nạp mô hình~~ → nạp sẵn ở nền
 - [ ] APK debug ~97 MB (thư viện native không nén) → kiểm tra kích thước bản release, cân nhắc App Bundle
 - [ ] Một vài lỗi dấu câu của vibert-capu ("Sao Bà không hiểu?…", viết hoa sau dấu phẩy)
 
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-1. F6.6 Chữ lớn toàn màn hình + F6.7 sao chép
-2. F10.3 Màn hình chẩn đoán + nạp sẵn mô hình khi mở hội thoại
-3. F2.1 Xử lý từ chối quyền micro · F5.1 bật/tắt đọc theo ghế · F5.4 nút cài giọng / gợi ý Supertonic
-4. F10.1 Chuyển chuỗi sang `strings.xml`, thêm giao diện tiếng Anh
-5. F6.3 Bố cục danh sách · sửa vị trí bàn phím cho người phía trên
-6. F8.2 Tuỳ chọn chỉ Wi-Fi, kiểm tra dung lượng trống, tải nền
-7. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
+1. F2.1 Xử lý từ chối quyền micro · F5.1 bật/tắt đọc theo ghế · F5.4 nút cài giọng / gợi ý Supertonic
+2. F10.1 Chuyển chuỗi sang `strings.xml`, thêm giao diện tiếng Anh
+3. F6.3 Bố cục danh sách (chuyền tay)
+4. F8.2 Tuỳ chọn chỉ Wi-Fi, kiểm tra dung lượng trống, tải nền
+5. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
 
 ## Nhật ký cập nhật
 
 | Ngày | Commit | Thay đổi |
 |---|---|---|
 | 2026-10-28 | `04469d4` | Tạo checklist; Giai đoạn 1 xong, MVP đang làm |
+| 2026-10-28 | (commit này) | F6.6 chữ lớn, F6.7 sao chép, F10.3 chẩn đoán, nạp sẵn mô hình, F9.3 xoá hội thoại, sửa bàn phím che ô nhập |

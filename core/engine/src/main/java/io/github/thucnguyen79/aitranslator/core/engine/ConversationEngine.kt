@@ -17,8 +17,8 @@ import kotlinx.coroutines.launch
 /** A person at the table: their position (0..3) and language. */
 data class Seat(val index: Int, val lang: Lang)
 
-/** Per-stage durations in ms, measured from the end of speech. */
-data class Timings(val asrMs: Long = 0, val mtMs: Long = 0)
+/** Per-stage durations: recognition (from the end of speech) and translation in ms, speech length in s. */
+data class Timings(val asrMs: Long = 0, val mtMs: Long = 0, val audioSec: Double = 0.0)
 
 data class Turn(
     val id: Long,
@@ -91,7 +91,7 @@ class ConversationEngine(
                 _state.value = EngineState.NothingHeard(seat)
                 return@launchTurn
             }
-            translateAndSpeak(seat, from, text, typed = false, asrMs = asrMs)
+            translateAndSpeak(seat, from, text, typed = false, asrMs = asrMs, audioSec = utterance.seconds)
         }
     }
 
@@ -131,13 +131,13 @@ class ConversationEngine(
         _turns.value = emptyList()
     }
 
-    private suspend fun translateAndSpeak(seat: Int, from: Lang, text: String, typed: Boolean, asrMs: Long) {
+    private suspend fun translateAndSpeak(seat: Int, from: Lang, text: String, typed: Boolean, asrMs: Long, audioSec: Double = 0.0) {
         _state.value = EngineState.Translating(seat)
         val targets = seats.filter { it.index != seat }.map { it.lang }.distinct().filter { it != from }
         val t0 = clock()
         val translations = targets.associateWith { translator.translate(text, from, it) }
         val mtMs = (clock() - t0) / 1_000_000
-        _turns.update { it + Turn(nextId++, seat, from, text, translations, typed, Timings(asrMs, mtMs)) }
+        _turns.update { it + Turn(nextId++, seat, from, text, translations, typed, Timings(asrMs, mtMs, audioSec)) }
         if (speakTranslations) {
             for (lang in targets) {
                 _state.value = EngineState.Speaking(seat, lang)

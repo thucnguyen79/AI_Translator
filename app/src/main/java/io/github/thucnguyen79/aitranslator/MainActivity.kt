@@ -10,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
@@ -61,7 +62,8 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                 ) { inner ->
-                    Box(Modifier.fillMaxSize().padding(inner)) {
+                    // consumeWindowInsets: imePadding() below then only adds what the keyboard covers beyond the bars.
+                    Box(Modifier.fillMaxSize().padding(inner).consumeWindowInsets(inner)) {
                         when (tab) {
                             0 -> ConversationScreen(container, withMic = ::withMicPermission, openPacks = { tab = 1 })
                             1 -> PacksScreen(container)
