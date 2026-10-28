@@ -29,7 +29,10 @@ data class Turn(
     val translations: Map<Lang, String>,
     val typed: Boolean,
     val timings: Timings,
-)
+) {
+    /** The sentence in [lang]: the original when it was said in [lang], else a translation (null if none yet). */
+    fun textIn(lang: Lang): String? = if (lang == from) source else translations[lang]
+}
 
 sealed interface EngineState {
     data object Idle : EngineState
@@ -54,6 +57,8 @@ class ConversationEngine(
     private val tts: SpeechSynthesizer,
     private val scope: CoroutineScope,
     private val clock: () -> Long = System::nanoTime,
+    /** Whether models for [from]→[to] are installed; other directions are skipped instead of failing. */
+    private val canTranslate: (from: Lang, to: Lang) -> Boolean = { _, _ -> true },
 ) {
     private val _state = MutableStateFlow<EngineState>(EngineState.Idle)
     val state: StateFlow<EngineState> = _state.asStateFlow()
@@ -61,10 +66,16 @@ class ConversationEngine(
     private val _turns = MutableStateFlow<List<Turn>>(emptyList())
     val turns: StateFlow<List<Turn>> = _turns.asStateFlow()
 
+    /** Changing a seat's language translates the earlier turns into it (see [catchUpTranslations]). */
     var seats: List<Seat> = listOf(Seat(0, Lang.VI), Seat(1, Lang.EN))
+        set(value) {
+            field = value
+            catchUpTranslations()
+        }
     var speakTranslations = true
 
     private var job: Job? = null
+    private var catchUpJob: Job? = null
     @Volatile private var stopRequested = false
     private var nextId = 1L
 
@@ -108,9 +119,34 @@ class ConversationEngine(
         launchTurn(seat) { translateAndSpeak(seat, from, text.trim(), typed = true, asrMs = 0) }
     }
 
-    /** Speaks one translation of an earlier turn again. */
+    /**
+     * Translates earlier turns into every language now at the table that they lack — after a seat changes
+     * language, or once a missing pack is installed. Translations already made are kept, so switching
+     * back and forth costs nothing. Directions without models are skipped.
+     */
+    fun catchUpTranslations() {
+        catchUpJob?.cancel()
+        catchUpJob = scope.launch {
+            val langs = seats.map { it.lang }.distinct()
+            for (turn in turns.value) {
+                for (lang in langs) {
+                    if (turn.textIn(lang) != null || !canTranslate(turn.from, lang)) continue
+                    val text = try {
+                        translator.translate(turn.source, turn.from, lang)
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        continue // a missing or broken model only leaves this turn untranslated
+                    }
+                    _turns.update { list -> list.map { if (it.id == turn.id) it.copy(translations = it.translations + (lang to text)) else it } }
+                }
+            }
+        }
+    }
+
+    /** Speaks one turn again in [lang] (the original if it was said in [lang]). */
     fun replay(turn: Turn, lang: Lang) {
-        val text = turn.translations[lang] ?: return
+        val text = turn.textIn(lang) ?: return
         if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) return
         launchTurn(turn.seat) {
             _state.value = EngineState.Speaking(turn.seat, lang)
@@ -128,12 +164,13 @@ class ConversationEngine(
 
     fun clear() {
         interrupt()
+        catchUpJob?.cancel()
         _turns.value = emptyList()
     }
 
     private suspend fun translateAndSpeak(seat: Int, from: Lang, text: String, typed: Boolean, asrMs: Long, audioSec: Double = 0.0) {
         _state.value = EngineState.Translating(seat)
-        val targets = seats.filter { it.index != seat }.map { it.lang }.distinct().filter { it != from }
+        val targets = seats.filter { it.index != seat }.map { it.lang }.distinct().filter { it != from && canTranslate(from, it) }
         val t0 = clock()
         val translations = targets.associateWith { translator.translate(text, from, it) }
         val mtMs = (clock() - t0) / 1_000_000

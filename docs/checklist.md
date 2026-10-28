@@ -85,7 +85,7 @@
 - [ ] F9.3 Xoá hội thoại 🟡 — có nút xoá hội thoại đang hiển thị (kèm xác nhận, chỉ ở nửa của người cầm máy); xoá phiên đã lưu / xoá tất cả chờ F9.1 (v1)
 
 ### F10. Cài đặt & chẩn đoán
-- [ ] F10.1 Giao diện vi + en 🟡 — chữ đang viết thẳng tiếng Việt trong code; cần chuyển sang `strings.xml` + bản tiếng Anh
+- [ ] F10.1 Giao diện vi + en 🟡 — hai nửa hội thoại đã theo ngôn ngữ từng ghế (5 thứ tiếng); các tab Gói ngôn ngữ / Thông tin vẫn chỉ tiếng Việt, cần `strings.xml` + bản tiếng Anh
 - [x] F10.3 Chẩn đoán (tab Thông tin): thời gian nhận dạng/dịch dưới mỗi câu, thời gian nạp mô hình, trung bình phiên, thông tin máy
 - [x] F10.4 Giấy phép & ghi nguồn
 - [x] Nạp sẵn mô hình khi mở app / đổi ngôn ngữ (trên máy thử: VAD 0,05 s · nhận dạng vi 2,0 s · zh 1,8 s · mỗi chiều dịch 0,3 s) → lần nói đầu không phải chờ
@@ -98,7 +98,8 @@
 - [x] F4.4 Một câu dịch sang mọi ngôn ngữ khác trong phiên
 - [ ] F3.1 / F4.2 zh, ko, ja 🟡 — đã nối trong app, gói tải được; **chưa** thử trên máy thật
 - [ ] F1.1 / F6.2 3–4 ghế (engine hỗ trợ; thiếu giao diện)
-- [ ] F1.3 Màu & tên ghế · F1.5 Đổi ngôn ngữ không mất lịch sử
+- [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
+- [ ] F1.3 Màu & tên ghế
 - [ ] F2.6 Chế độ rảnh tay · F3.2 Chữ tạm thời · F3.4 Nhận diện ngôn ngữ nói · F3.5 Mô hình theo cấu hình máy
 - [ ] F4.5 Dịch ngược để kiểm tra
 - [ ] F5.3 Tốc độ đọc, chọn giọng
@@ -116,16 +117,22 @@
 - [x] ~~Lần nói đầu tiên chờ nạp mô hình~~ → nạp sẵn ở nền
 - [ ] APK debug ~97 MB (thư viện native không nén) → kiểm tra kích thước bản release, cân nhắc App Bundle
 - [ ] Một vài lỗi dấu câu của vibert-capu ("Sao Bà không hiểu?…", viết hoa sau dấu phẩy)
-- [ ] **Đổi ngôn ngữ giữa hội thoại** (thử trên máy 2026-10-28, liên quan F1.5):
-  - [ ] Câu cũ không được dịch sang ngôn ngữ mới → ghế vừa đổi thấy nguyên văn của người kia, mất nút "Nghe lại"
-  - [ ] Khi không có bản dịch, bong bóng hiện **cùng một câu hai lần** (dòng chính và dòng phụ giống nhau)
-  - [ ] Chọn ngôn ngữ chưa tải gói → **cả hai nửa ẩn toàn bộ hội thoại** (dữ liệu không mất nhưng dễ tưởng là mất)
+- [x] **Đổi ngôn ngữ giữa hội thoại** (thử trên máy 2026-10-28, liên quan F1.5) — đã sửa:
+  - [x] ~~Câu cũ không được dịch sang ngôn ngữ mới~~ → tự dịch bù ngầm, giữ mọi bản dịch đã có
+  - [x] ~~Bong bóng hiện cùng một câu hai lần~~
+  - [x] ~~Chọn ngôn ngữ chưa tải gói thì ẩn toàn bộ hội thoại~~ → vẫn hiện, chỉ khoá micro/nhập, báo đúng gói còn thiếu
   - [x] Câu mới sau khi đổi được dịch đúng sang ngôn ngữ mới; đổi lại như cũ không mất câu nào
 - [ ] Nhận dạng tiếng Trung (SenseVoice) cho ra câu vô nghĩa "你唱城去。" ở một lượt nói thật → cần đo kỹ (👤 cần giọng tiếng Trung)
 
+## Yêu cầu của anh/chị (2026-10-28)
+
+- [x] Sửa 3 lỗi đổi ngôn ngữ giữa hội thoại (mục trên, F1.5)
+- [x] Đổi icon app: icon thích ứng vector (bong bóng "A" và "文", nền gradient xanh–tím) + icon đơn sắc theo chủ đề
+- [x] Chữ của mỗi nửa theo ngôn ngữ của nửa đó (vi/en/zh/ko/ja): Nói, Nhập/Ẩn bàn phím, Dừng, Xoá, Nghe lại, trạng thái, cảnh báo, hộp xác nhận xoá
+- [x] Chữ lớn toàn màn hình: hiện ngôn ngữ của người ở hướng đang quay tới (cả các nút); bấm xoay đổi sang người phía bên kia; sửa chữ tiếng Việt cỡ lớn bị chồng dòng
+
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-0. Sửa lỗi đổi ngôn ngữ giữa hội thoại (F1.5): tự dịch lại câu cũ, bỏ dòng trùng, không ẩn hội thoại khi thiếu gói
 1. F2.1 Xử lý từ chối quyền micro · F5.1 bật/tắt đọc theo ghế · F5.4 nút cài giọng / gợi ý Supertonic
 2. F10.1 Chuyển chuỗi sang `strings.xml`, thêm giao diện tiếng Anh
 3. F6.3 Bố cục danh sách (chuyền tay)
@@ -139,3 +146,4 @@
 | 2026-10-28 | `04469d4` | Tạo checklist; Giai đoạn 1 xong, MVP đang làm |
 | 2026-10-28 | `e297de9` | F6.6 chữ lớn, F6.7 sao chép, F10.3 chẩn đoán, nạp sẵn mô hình, F9.3 xoá hội thoại, sửa bàn phím che ô nhập |
 | 2026-10-28 | — | Thử đổi ngôn ngữ giữa hội thoại trên máy: ghi 3 lỗi (F1.5) |
+| 2026-10-28 | (commit này) | Sửa đổi ngôn ngữ giữa hội thoại (F1.5), icon mới, chữ theo ngôn ngữ từng nửa, chữ lớn theo người đọc |

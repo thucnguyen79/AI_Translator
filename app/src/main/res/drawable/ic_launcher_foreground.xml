@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Two speech bubbles, "A" and "文": a conversation across languages. Kept inside the 72dp visible circle. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Back bubble (white) with its tail -->
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M33,30h18a9,9 0,0 1,9 9v10a9,9 0,0 1,-9 9h-12l-10,8l2,-8h0a9,9 0,0 1,-7 -9v-10a9,9 0,0 1,9 -9z" />
+    <!-- "A" -->
+    <path
+        android:strokeColor="#FF4338CA"
+        android:strokeWidth="3.6"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M34.5,51.5L42,36.5L49.5,51.5M37.6,45.5L46.4,45.5" />
+    <!-- Front bubble (amber) with its tail -->
+    <path
+        android:fillColor="#FFFBBF24"
+        android:strokeColor="#FF4338CA"
+        android:strokeWidth="1.5"
+        android:pathData="M57,50h18a9,9 0,0 1,9 9v10a9,9 0,0 1,-9 9h-14l-7,7l0,-7.5a9,9 0,0 1,-6 -8.5v-10a9,9 0,0 1,9 -9z" />
+    <!-- "文" -->
+    <path
+        android:strokeColor="#FF1E1B4B"
+        android:strokeWidth="3"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M66,54.5L66,57M57.5,59.5L74.5,59.5M71,60.5C69.5,67.5 64.5,72 58,74M61,60.5C62.5,67.5 67.5,72 74,74" />
+</vector>

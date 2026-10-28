@@ -55,7 +55,10 @@ class AppContainer(context: Context) {
     private val audioInput = LazyAudioInput()
     private val recognizer = LazyRecognizer()
 
-    val engine = ConversationEngine(audioInput, recognizer, translator, tts, scope).apply {
+    val engine = ConversationEngine(
+        audioInput, recognizer, translator, tts, scope,
+        canTranslate = { from, to -> packs.isLanguageReady(from) && packs.isLanguageReady(to) },
+    ).apply {
         seats = listOf(Seat(0, savedLang("seat0", Lang.VI)), Seat(1, savedLang("seat1", Lang.EN)))
     }
 

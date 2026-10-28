@@ -153,6 +153,36 @@ class ConversationEngineTest {
         assertEquals("vi:Where is the toilet?", turn.translations[Lang.VI])
     }
 
+    @Test fun changingASeatLanguageTranslatesEarlierTurns() = runTest {
+        val engine = engine()
+        engine.startListening(0)
+        advanceUntilIdle()
+
+        engine.seats = listOf(Seat(0, Lang.VI), Seat(1, Lang.ZH))
+        advanceUntilIdle()
+
+        val turn = engine.turns.value.single()
+        assertEquals("zh:xin chào", turn.textIn(Lang.ZH))
+        // Earlier translations are kept, so switching back needs no new work.
+        assertEquals("en:xin chào", turn.textIn(Lang.EN))
+        assertEquals("xin chào", turn.textIn(Lang.VI))
+        val calls = translator.calls.size
+        engine.seats = listOf(Seat(0, Lang.VI), Seat(1, Lang.EN))
+        advanceUntilIdle()
+        assertEquals(calls, translator.calls.size)
+    }
+
+    @Test fun directionsWithoutModelsAreSkipped() = runTest {
+        val engine = ConversationEngine(audio, recognizer, translator, tts, this, clock = { 0 }, canTranslate = { _, to -> to != Lang.KO })
+        engine.seats = listOf(Seat(0, Lang.VI), Seat(1, Lang.KO))
+        engine.startListening(0)
+        advanceUntilIdle()
+
+        assertTrue(engine.turns.value.single().translations.isEmpty())
+        assertEquals(EngineState.Idle, engine.state.value)
+        assertTrue(translator.calls.isEmpty())
+    }
+
     @Test fun failuresAreReported() = runTest {
         val engine = ConversationEngine(
             audio,
