@@ -107,7 +107,7 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     val phrases = remember { Phrasebook.load(context) }
     // Re-evaluated whenever a pack finishes installing.
     val ready = remember(packStates) { Lang.entries.associateWith { container.packs.isLanguageReady(it) } }
-    val canDetect = remember(packStates) { container.models.lidDir != null }
+    val canDetect = remember(packStates) { container.activeLidPack() != null }
     var big by remember { mutableStateOf<BigText?>(null) }
     var confirmClear by remember { mutableStateOf(false) }
     /** The seat whose phrasebook is open. */

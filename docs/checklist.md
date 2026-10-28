@@ -102,9 +102,9 @@
 - [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
 - [x] F1.3 Màu & tên ghế: mỗi người một màu + số thứ tự (thử trên máy ✓); đặt tên trong tab Thông tin, hiện ở vùng của người đó, nút nói, bong bóng, lịch sử và file chia sẻ — thử trên máy ✓
 - [x] F2.6 Chế độ rảnh tay (menu ⋮ ở vùng người cầm máy, hoặc nút 🎧 ở Chuyền tay): nói xong máy tự nghe tiếp; bấm mic của ai thì người đó nói ngay; lỗi micro thì tự tắt — thử trên máy ✓ (không có gói nhận diện: tự nghe người 1, đã thu và dịch được một câu nói thật)
-- [x] F3.4 Nhận diện ngôn ngữ nói: gói tuỳ chọn "Nhận diện ngôn ngữ nói" (**Whisper base int8, 160 MB**; thay bản tiny 103 MB, bản cũ tự xoá khỏi máy); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt. Thử trên máy ✓ (phát file mẫu qua loa: zh → vi → vi → zh → vi đúng 5/5). Cách làm và số đo:
+- [x] F3.4 Nhận diện ngôn ngữ nói: 3 gói tuỳ chọn **Tiny 103 MB · Base 160 MB (nên dùng) · Small 375 MB**, tải/xoá riêng, chọn "Dùng bản này" trong Gói ngôn ngữ (bản đã chọn bị xoá thì tự dùng bản khác đã cài) — thử trên máy ✓ (tải Tiny, chuyển qua lại, xoá); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt. Thử trên máy ✓ (phát file mẫu qua loa: zh → vi → vi → zh → vi đúng 5/5). Cách làm và số đo:
   - Chỉ so các ngôn ngữ đang có ở bàn (tự chạy mô hình bằng ONNX Runtime) thay vì để Whisper chọn trong 99 ngôn ngữ — tiny tự chọn: tiếng Việt sai 7/12 (ra zh, th, ms, ar)
-  - Cặp ngôn ngữ đúng trên file mẫu (sạch / mô phỏng thu từ xa): tiny 52/56 · 30/56 → base 56/56 · 37/56 → base + bù +2 điểm cho tiếng Việt (Whisper nghiêng về tiếng Trung) **56/56 · 50/56**
+  - Cặp ngôn ngữ đúng trên file mẫu (sạch / mô phỏng thu từ xa), có bù +2 điểm cho tiếng Việt (Whisper nghiêng về tiếng Trung): tiny 56/56 · 40/56 · base 56/56 · 50/56 · small 56/56 · 53/56 (không bù: 30, 37, 43 khi thu từ xa). Small chậm gấp ~3 lần base
   - Luật theo lượt chỉ làm trọng tài khi gần hoà (0,5 điểm): ngưỡng 2 làm "một người nói liền 2 câu" chỉ đúng 25/56 khi thu từ xa
   - Chậm hơn: nhận dạng mỗi câu ~1,3 s sau khi nói xong (có nhận diện ngôn ngữ), nạp mô hình 0,8 s
   - ⚠️ Mới đo trên 7 file mẫu + phát qua loa; 👤 cần thử với người thật nói gần máy
@@ -156,6 +156,11 @@
 - [x] Nền mỗi vùng mang màu của người ngồi đó (mặt đối mặt, quanh bàn); Chuyền tay: khung hội thoại nền riêng, hàng điều khiển của mỗi người tô màu người đó, bong bóng viền màu người nói — thử trên máy ✓
 - [x] F6.2 bố cục 4 phía · F2.6 rảnh tay · F3.4 nhận diện ngôn ngữ · chọn giọng · đặt tên (các mục ở trên)
 
+## Yêu cầu của anh/chị (2026-10-28, lần 3)
+
+- [x] Cho chọn tải/xoá/dùng bản Whisper nào: tiny, base, small (mục F3.4)
+- [x] Thanh tab dưới chỉ còn biểu tượng 💬 🕘 ⬇ ⓘ, cao 56 dp thay vì 80 dp (TalkBack vẫn đọc tên tab) — thử trên máy ✓
+
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
 1. 👤 Thử rảnh tay "ai nói cũng được" với người thật (vi + một ngôn ngữ khác), nói gần máy; nghe thử tốc độ đọc; chế độ riêng tư
@@ -180,3 +185,4 @@
 | 2026-10-28 | `f5abf50` | Thử trên máy: thanh công cụ gọn, nền phân vùng, Quanh bàn 4 người, chữ lớn xoay 4 hướng, rảnh tay, tên, chọn giọng ✓; sửa nút nói vùng bên quá nhỏ, đánh số giọng |
 | 2026-10-28 | `157b90b` | F3.4: tải gói trên máy, đo độ chính xác; tự chạy Whisper bằng ONNX Runtime, chỉ chọn trong ngôn ngữ ở bàn + luật theo lượt; tiếng Việt thu từ loa vẫn chưa tin cậy |
 | 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
+| 2026-10-28 | _(commit này)_ | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |

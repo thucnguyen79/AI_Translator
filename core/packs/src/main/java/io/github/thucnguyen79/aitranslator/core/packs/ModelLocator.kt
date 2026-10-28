@@ -22,11 +22,11 @@ class ModelLocator(private val packs: PackManager) {
     /** Null when the optional Supertonic pack is not installed. */
     val supertonicDir: File? get() = File(packs.dir("tts-supertonic"), "tts").takeIf { packs.isInstalled("tts-supertonic") }
 
-    /** Null when the optional language-identification pack is not installed. */
-    val lidDir: File? get() = File(packs.dir(LID_PACK), "lid").takeIf { packs.isInstalled(LID_PACK) }
+    /** The Whisper model of a language-identification pack ([LID_PACKS]), or null when it is not installed. */
+    fun lidDir(packId: String): File? = File(packs.dir(packId), "lid").takeIf { packs.isInstalled(packId) }
 
     companion object {
-        /** Spoken language identification (Whisper base); replaced the 103 MB Whisper tiny pack "lid". */
-        const val LID_PACK = "lid-base"
+        /** Spoken language identification packs (Whisper tiny, base, small), smallest first. */
+        val LID_PACKS = listOf("lid-tiny", "lid-base", "lid-small")
     }
 }

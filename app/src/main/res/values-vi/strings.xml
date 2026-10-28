@@ -88,7 +88,12 @@
     <string name="voice_auto">Tự động</string>
     <string name="voice_supertonic">Supertonic (giọng dự phòng)</string>
     <string name="voice_none">Chưa có giọng offline</string>
-    <string name="pack_lid">Nhận diện ngôn ngữ nói</string>
-    <string name="pack_lid_subtitle">Chế độ rảnh tay: ai nói cũng được, máy tự nhận ra theo ngôn ngữ</string>
+    <string name="pack_lid">Nhận diện ngôn ngữ nói · %1$s</string>
+    <string name="pack_lid_subtitle">Dùng cho chế độ rảnh tay: ai nói cũng được, máy tự nhận ra theo ngôn ngữ.</string>
+    <string name="pack_lid_tiny">Nhanh nhất, kém chính xác nhất.</string>
+    <string name="pack_lid_base">Cân bằng, nên dùng.</string>
+    <string name="pack_lid_small">Chính xác nhất, chậm hơn Base khoảng 3 lần.</string>
+    <string name="pack_in_use">✓ Đang dùng</string>
+    <string name="pack_use">Dùng bản này</string>
     <string name="voice_n">Giọng %1$d</string>
 </resources>

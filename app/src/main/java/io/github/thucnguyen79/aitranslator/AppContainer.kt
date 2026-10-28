@@ -118,10 +118,23 @@ class AppContainer(context: Context) {
         engine.setHandsFree(on)
     }
 
-    /** Uses spoken-language detection once its optional pack is installed. */
+    /** Uses spoken-language detection once one of its optional packs is installed. */
     private fun updateIdentifier() {
-        engine.identifier = if (models.lidDir != null) languageId else null
+        engine.identifier = if (activeLidPack() != null) languageId else null
     }
+
+    /** The language-detection model chosen in Language packs (F3.4). */
+    val lidChoice = MutableStateFlow(prefs.getString("lid_pack", null))
+
+    fun setLidChoice(packId: String) {
+        lidChoice.value = packId
+        prefs.edit().putString("lid_pack", packId).apply()
+        updateIdentifier()
+    }
+
+    /** The chosen detection pack if installed, else an installed one (Base first): null when none is. */
+    fun activeLidPack(): String? =
+        lidChoice.value?.takeIf(packs::isInstalled) ?: listOf("lid-base", "lid-small", "lid-tiny").firstOrNull(packs::isInstalled)
 
     /** Chosen voice per language: a system voice name or SUPERTONIC_VOICE; absent = automatic (F5.3). */
     val voiceChoice = MutableStateFlow(
@@ -325,18 +338,22 @@ class AppContainer(context: Context) {
         }
     }
 
-    /** Whisper language identification, loaded on first use from the optional "lid" pack. */
+    /** Whisper language identification from the active detection pack, loaded on first use (and on a switch). */
     private inner class LazyLanguageId : LanguageIdentifier {
         private val mutex = Mutex()
         private var lid: WhisperLanguageId? = null
+        private var loadedPack: String? = null
 
         suspend fun prepare(): WhisperLanguageId = mutex.withLock {
-            lid ?: run {
-                val dir = checkNotNull(models.lidDir) { "Language detection pack is not installed" }
+            val pack = checkNotNull(activeLidPack()) { "Language detection pack is not installed" }
+            lid?.takeIf { loadedPack == pack } ?: run {
+                lid?.close()
+                lid = null
                 val t0 = System.nanoTime()
-                WhisperLanguageId(dir).also {
+                WhisperLanguageId(checkNotNull(models.lidDir(pack))).also {
                     lid = it
-                    loadTimes.update { times -> times + ("LID" to (System.nanoTime() - t0) / 1_000_000) }
+                    loadedPack = pack
+                    loadTimes.update { times -> times + ("LID ${pack.removePrefix("lid-")}" to (System.nanoTime() - t0) / 1_000_000) }
                 }
             }
         }

@@ -15,7 +15,7 @@ import java.nio.FloatBuffer
 import java.nio.LongBuffer
 
 /**
- * Spoken language identification with Whisper (base, int8, sherpa-onnx export) run directly on ONNX Runtime:
+ * Spoken language identification with Whisper (tiny, base or small; int8, sherpa-onnx export) run directly on ONNX Runtime:
  * one encoder pass and one decoder step from the start-of-transcript token, then the highest-scoring
  * language token among the candidates only. Choosing among the languages at the table instead of all 99
  * matters: on sample speech Vietnamese came out as Chinese, Thai or Arabic about half the time otherwise.
@@ -96,7 +96,8 @@ class WhisperLanguageId(dir: File, threads: Int = 2) : LanguageIdentifier, AutoC
 
         /**
          * Added to a language's score. Tuned on sample speech (7 clips, clean and simulated far-field): +2 for
-         * Vietnamese took far-field language pairs from 37/56 to 50/56 without losing any clean ones.
+         * Vietnamese took far-field language pairs from 30 to 40 (tiny), 37 to 50 (base) and 43 to 53 (small)
+         * of 56 without losing any clean ones.
          */
         val BIAS = mapOf(Lang.VI to 2f)
 

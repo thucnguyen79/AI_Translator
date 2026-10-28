@@ -14,15 +14,22 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.darkColorScheme
@@ -35,7 +42,14 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -85,23 +99,7 @@ class MainActivity : ComponentActivity() {
             MaterialTheme(colorScheme = if (dark) darkColorScheme() else lightColorScheme()) {
                 var tab by rememberSaveable { mutableIntStateOf(if (anyLanguageReady) 0 else 2) }
                 Scaffold(
-                    bottomBar = {
-                        NavigationBar {
-                            listOf(
-                                "💬" to R.string.tab_conversation,
-                                "🕘" to R.string.tab_history,
-                                "⬇" to R.string.tab_packs,
-                                "ⓘ" to R.string.tab_about,
-                            ).forEachIndexed { i, (icon, label) ->
-                                NavigationBarItem(
-                                    selected = tab == i,
-                                    onClick = { tab = i },
-                                    icon = { Text(icon) },
-                                    label = { Text(stringResource(label)) },
-                                )
-                            }
-                        }
-                    },
+                    bottomBar = { TabBar(tab) { tab = it } },
                 ) { inner ->
                     // The text size setting scales the screens (on top of the phone's own font size), not the tab bar.
                     val density = LocalDensity.current
@@ -118,6 +116,38 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 MicPermissionDialog()
+            }
+        }
+    }
+
+    /**
+     * Icons only, 56 dp high: Material's NavigationBar is at least 80 dp even without labels. The tab names
+     * are still read out by TalkBack.
+     */
+    @Composable
+    private fun TabBar(selected: Int, onSelect: (Int) -> Unit) {
+        Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+            Row(Modifier.fillMaxWidth().navigationBarsPadding().height(56.dp), verticalAlignment = Alignment.CenterVertically) {
+                listOf(
+                    "💬" to R.string.tab_conversation,
+                    "🕘" to R.string.tab_history,
+                    "⬇" to R.string.tab_packs,
+                    "ⓘ" to R.string.tab_about,
+                ).forEachIndexed { i, (icon, label) ->
+                    val name = stringResource(label)
+                    Box(
+                        Modifier.weight(1f).fillMaxHeight()
+                            .selectable(selected = selected == i, role = Role.Tab, onClick = { onSelect(i) })
+                            .semantics { contentDescription = name },
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            Modifier.clip(CircleShape)
+                                .background(if (selected == i) MaterialTheme.colorScheme.secondaryContainer else androidx.compose.ui.graphics.Color.Transparent)
+                                .padding(horizontal = 20.dp, vertical = 4.dp),
+                        ) { Text(icon, fontSize = 22.sp) }
+                    }
+                }
             }
         }
     }

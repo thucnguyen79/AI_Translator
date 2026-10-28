@@ -57,6 +57,9 @@ fun PacksScreen(container: AppContainer) {
     val packs = container.packs
     val states by packs.states.collectAsStateWithLifecycle()
     val wifiOnly by container.wifiOnly.collectAsStateWithLifecycle()
+    val lidChoice by container.lidChoice.collectAsStateWithLifecycle()
+    // Which detection model is in use: re-evaluated when packs or the choice change.
+    val activeLid = remember(states, lidChoice) { container.activeLidPack() }
     val scope = rememberCoroutineScope()
     val visible = packs.catalog.packs.filter { it.kind != PackKind.SHARED }
     var prompt by remember { mutableStateOf<InstallPrompt?>(null) }
@@ -146,6 +149,8 @@ fun PacksScreen(container: AppContainer) {
                 onInstall = { requestInstall(pack) },
                 onCancel = { chain.forEach { packs.cancel(it.id) }; packs.cancel(pack.id) },
                 onDelete = { scope.launch { packs.delete(pack.id); container.refreshVoices() } },
+                inUse = if (pack.id in ModelLocator.LID_PACKS) activeLid == pack.id else null,
+                onUse = { container.setLidChoice(pack.id) },
             )
         }
     }
@@ -163,6 +168,9 @@ private fun PackCard(
     onInstall: () -> Unit,
     onCancel: () -> Unit,
     onDelete: () -> Unit,
+    /** For packs where one of several is used (language detection): whether this one is; null otherwise. */
+    inUse: Boolean? = null,
+    onUse: () -> Unit = {},
 ) {
     Card(Modifier.fillMaxWidth()) {
         Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -191,7 +199,14 @@ private fun PackCard(
                 }
                 is PackState.Failed -> Text(stringResource(R.string.pack_error, state.message), color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
                 PackState.Queued -> Text(stringResource(R.string.pack_queued), fontSize = 13.sp)
-                PackState.Installed -> Text(stringResource(R.string.pack_installed), fontSize = 13.sp)
+                PackState.Installed -> Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.pack_installed), fontSize = 13.sp, modifier = Modifier.weight(1f))
+                    when (inUse) {
+                        true -> Text(stringResource(R.string.pack_in_use), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+                        false -> TextButton(onClick = onUse) { Text(stringResource(R.string.pack_use)) }
+                        null -> Unit
+                    }
+                }
                 PackState.NotInstalled -> Unit
             }
         }
@@ -201,14 +216,21 @@ private fun PackCard(
 @Composable
 internal fun title(pack: Pack): String = when (pack.kind) {
     PackKind.LANGUAGE -> pack.langs.single().nativeName
-    PackKind.OPTIONAL -> stringResource(if (pack.id == ModelLocator.LID_PACK) R.string.pack_lid else R.string.pack_supertonic)
+    PackKind.OPTIONAL -> if (pack.id in ModelLocator.LID_PACKS) stringResource(R.string.pack_lid, pack.id.removePrefix("lid-").replaceFirstChar { it.uppercase() })
+    else stringResource(R.string.pack_supertonic)
     PackKind.SHARED -> stringResource(if (pack.id == "core") R.string.pack_core else R.string.pack_speech_multi)
 }
 
 @Composable
 private fun subtitle(pack: Pack): String = when (pack.kind) {
     PackKind.LANGUAGE -> stringResource(R.string.pack_language_subtitle)
-    PackKind.OPTIONAL -> if (pack.id == ModelLocator.LID_PACK) stringResource(R.string.pack_lid_subtitle)
+    PackKind.OPTIONAL -> if (pack.id in ModelLocator.LID_PACKS) stringResource(
+        when (pack.id) {
+            "lid-tiny" -> R.string.pack_lid_tiny
+            "lid-small" -> R.string.pack_lid_small
+            else -> R.string.pack_lid_base
+        },
+    ) + " " + stringResource(R.string.pack_lid_subtitle)
     else stringResource(R.string.pack_supertonic_subtitle, pack.langs.joinToString { it.nativeName })
     PackKind.SHARED -> ""
 }

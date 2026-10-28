@@ -95,7 +95,12 @@
     <string name="voice_auto">Automatic</string>
     <string name="voice_supertonic">Supertonic (backup voice)</string>
     <string name="voice_none">No offline voice</string>
-    <string name="pack_lid">Spoken language detection</string>
-    <string name="pack_lid_subtitle">Hands-free mode: anyone can speak, the app tells who from the language</string>
+    <string name="pack_lid">Spoken language detection · %1$s</string>
+    <string name="pack_lid_subtitle">For hands-free mode: anyone can speak, the app tells who from the language.</string>
+    <string name="pack_lid_tiny">Fastest, least accurate.</string>
+    <string name="pack_lid_base">Balanced, recommended.</string>
+    <string name="pack_lid_small">Most accurate, about 3× slower than Base.</string>
+    <string name="pack_in_use">✓ In use</string>
+    <string name="pack_use">Use this one</string>
     <string name="voice_n">Voice %1$d</string>
 </resources>
