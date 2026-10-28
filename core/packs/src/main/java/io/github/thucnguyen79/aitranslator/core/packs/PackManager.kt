@@ -10,12 +10,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.IOException
 
 sealed interface PackState {
     data object NotInstalled : PackState
+    /** Waiting for another pack to finish (installs run one at a time). */
+    data object Queued : PackState
     /** [bytes] of [total] downloaded for this pack (its required packs report their own progress). */
     data class Downloading(val bytes: Long, val total: Long) : PackState {
         val progress: Float get() = if (total > 0) bytes.toFloat() / total else 0f
@@ -36,6 +40,8 @@ class PackManager(
 ) {
     private val downloads = File(root, ".downloads")
     private val jobs = HashMap<String, Job>()
+    /** One install at a time: packs share requirements (and partial files in [downloads]). */
+    private val installLock = Mutex()
     private val _states = MutableStateFlow(catalog.packs.associate { it.id to initialState(it) })
     val states: StateFlow<Map<String, PackState>> = _states.asStateFlow()
 
@@ -52,10 +58,19 @@ class PackManager(
     fun install(packId: String) {
         synchronized(jobs) {
             if (jobs[packId]?.isActive == true) return
+            val chain = catalog.withRequirements(packId).filterNot { isInstalled(it.id) }
+            chain.forEach { if (states.value[it.id] !is PackState.Downloading) set(it.id, PackState.Queued) }
             jobs[packId] = scope.launch(Dispatchers.IO) {
-                for (pack in catalog.withRequirements(packId)) {
-                    if (isInstalled(pack.id)) continue
-                    if (!installOne(pack)) break
+                try {
+                    installLock.withLock {
+                        for (pack in chain) {
+                            if (isInstalled(pack.id)) continue
+                            if (!installOne(pack)) break
+                        }
+                    }
+                } finally {
+                    // Anything still queued (cancelled or after a failure) goes back to not installed.
+                    chain.forEach { if (states.value[it.id] == PackState.Queued) set(it.id, PackState.NotInstalled) }
                 }
             }
         }
@@ -92,6 +107,7 @@ class PackManager(
             set(pack.id, PackState.Installing)
             val target = dir(pack.id)
             target.deleteRecursively()
+            target.mkdirs() // also for packs without files of their own (e.g. "en" only needs shared models)
             for ((f, part) in files) {
                 val dest = File(target, f.path)
                 when (f.extract) {

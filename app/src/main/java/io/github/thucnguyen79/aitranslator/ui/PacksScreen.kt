@@ -45,13 +45,16 @@ fun PacksScreen(container: AppContainer) {
             )
         }
         items(visible, key = { it.id }) { pack ->
-            // Show the step in progress: a language pack first installs the shared packs it needs.
+            // While this pack is requested, show the step in progress: it first installs the shared packs it
+            // needs. A pack that was not requested ignores requirements another pack is installing.
             val chain = packs.catalog.withRequirements(pack.id)
-            val active = chain.firstOrNull { states[it.id] !is PackState.Installed && states[it.id] !is PackState.NotInstalled }
-            val state = when {
-                packs.isInstalled(pack.id) && chain.all { states[it.id] is PackState.Installed } -> PackState.Installed
-                active != null -> states.getValue(active.id)
-                else -> PackState.NotInstalled
+            val own = states.getValue(pack.id)
+            val active = chain.firstOrNull { states[it.id] is PackState.Downloading || states[it.id] == PackState.Installing }
+            val state = when (own) {
+                // A deleted requirement makes the language unusable again.
+                PackState.Installed -> if (chain.all { states[it.id] == PackState.Installed }) own else PackState.NotInstalled
+                PackState.NotInstalled, is PackState.Failed -> own
+                else -> active?.let { states.getValue(it.id) } ?: own
             }
             PackCard(
                 pack = pack,
@@ -86,7 +89,7 @@ private fun PackCard(
                 when (state) {
                     PackState.NotInstalled, is PackState.Failed ->
                         Button(onClick = onInstall) { Text("Tải ${"%.0f".format(Locale.US, downloadMb)} MB") }
-                    is PackState.Downloading, PackState.Installing -> OutlinedButton(onClick = onCancel) { Text("Huỷ") }
+                    is PackState.Downloading, PackState.Installing, PackState.Queued -> OutlinedButton(onClick = onCancel) { Text("Huỷ") }
                     PackState.Installed -> OutlinedButton(onClick = onDelete) { Text("Xoá") }
                 }
             }
@@ -103,6 +106,7 @@ private fun PackCard(
                     Text("Đang giải nén…", fontSize = 13.sp)
                 }
                 is PackState.Failed -> Text("Lỗi: ${state.message}", color = MaterialTheme.colorScheme.error, fontSize = 13.sp)
+                PackState.Queued -> Text("Đang chờ gói khác tải xong…", fontSize = 13.sp)
                 PackState.Installed -> Text("✓ Đã cài", fontSize = 13.sp)
                 PackState.NotInstalled -> Unit
             }

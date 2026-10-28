@@ -74,6 +74,33 @@ class PackManagerTest {
         assertEquals("t", File(locator.asrDir(Lang.VI), "tokens.txt").readText())
     }
 
+    @Test fun concurrentInstallsShareRequirementsSafely() = runBlocking {
+        val vad = tmp.newFile("vad.onnx").apply { writeText("v".repeat(200_000)) }
+        val vi = tmp.newFile("vi.bin").apply { writeText("vi") }
+        val en = tmp.newFile("en.bin").apply { writeText("en") }
+        val catalog = PackCatalog(
+            1,
+            listOf(
+                Pack("core", PackKind.SHARED, emptyList(), emptyList(), "", listOf(packFile(vad, "vad/silero_vad.onnx"))),
+                Pack("vi", PackKind.LANGUAGE, listOf(Lang.VI), listOf("core"), "", listOf(packFile(vi, "vi.bin"))),
+                Pack("en", PackKind.LANGUAGE, listOf(Lang.EN), listOf("core"), "", listOf(packFile(en, "en.bin"))),
+                // Like the real "en" pack: only shared models, no files of its own.
+                Pack("ja", PackKind.LANGUAGE, listOf(Lang.JA), listOf("core"), "", emptyList()),
+            ),
+        )
+        val manager = PackManager(tmp.newFolder("packs"), catalog, CoroutineScope(SupervisorJob() + Dispatchers.IO))
+
+        manager.install("vi")
+        manager.install("en")
+        manager.install("ja")
+        withTimeout(10_000) {
+            manager.states.first { s -> listOf("vi", "en", "ja").all { s[it] == PackState.Installed } }
+        }
+
+        assertEquals(PackState.Installed, manager.states.value["core"])
+        assertEquals(200_000L, ModelLocator(manager).vadModel.length())
+    }
+
     @Test fun checksumMismatchFailsThePack() = runBlocking {
         val vad = tmp.newFile("vad.onnx").apply { writeText("vad") }
         val bad = packFile(vad, "vad/silero_vad.onnx").copy(sha256 = "0".repeat(64))
