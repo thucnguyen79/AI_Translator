@@ -17,7 +17,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 OUT = ROOT / "core" / "packs" / "src" / "main" / "assets" / "packs.json"
-CATALOG_VERSION = 1
+CATALOG_VERSION = 2
 
 SHERPA = "https://api.github.com/repos/k2-fsa/sherpa-onnx/releases/tags/{tag}"
 FIREFOX = "https://firefox.settings.services.mozilla.com/v1/buckets/main/collections/translations-models/records"
@@ -29,6 +29,9 @@ VAD = ("asr-models", "silero_vad.onnx")
 ASR_VI = ("asr-models", "sherpa-onnx-zipformer-vi-30M-int8-2026-02-09.tar.bz2")
 ASR_MULTI = ("asr-models", "sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2")
 TTS_SUPERTONIC = ("tts-models", "sherpa-onnx-supertonic-3-tts-int8-2026-05-11.tar.bz2")
+# Spoken language identification (F3.4): Whisper tiny's int8 encoder + decoder (tokens are not needed for LID).
+LID_REPO = "csukuangfj/sherpa-onnx-whisper-tiny"
+LID_FILES = {"tiny-encoder.int8.onnx": "encoder.int8.onnx", "tiny-decoder.int8.onnx": "decoder.int8.onnx"}
 PUNCT_REPO = "welcomyou/vibert-capu-onnx"
 PUNCT_FILES = {"vibert-capu.int8.onnx": "vibert-capu.int8.onnx", "vocab.txt": "vocab.txt", "vocabulary/labels.txt": "labels.txt"}
 # Small text files are not in Git LFS, so Hugging Face reports no hash: pinned here (checked when generated).
@@ -96,14 +99,18 @@ def version_key(v: str) -> tuple:
     return nums + ((1, 0) if not pre else (0, int(pre or 0)))
 
 
-def punct_files() -> list[dict]:
-    meta = {s["rfilename"]: s for s in get_json(HF_API.format(repo=PUNCT_REPO))["siblings"]}
+def hf_files(repo: str, files: dict[str, str], folder: str, pinned: dict[str, str] | None = None) -> list[dict]:
+    meta = {s["rfilename"]: s for s in get_json(HF_API.format(repo=repo))["siblings"]}
     out = []
-    for remote, local in PUNCT_FILES.items():
+    for remote, local in files.items():
         s = meta[remote]
-        sha = (s.get("lfs") or {}).get("sha256") or PUNCT_SMALL_SHA256[remote]
-        out.append({"url": HF_FILE.format(repo=PUNCT_REPO, path=remote), "size": s["size"], "sha256": sha, "path": f"punct/{local}"})
+        sha = (s.get("lfs") or {}).get("sha256") or (pinned or {})[remote]
+        out.append({"url": HF_FILE.format(repo=repo, path=remote), "size": s["size"], "sha256": sha, "path": f"{folder}/{local}"})
     return out
+
+
+def punct_files() -> list[dict]:
+    return hf_files(PUNCT_REPO, PUNCT_FILES, "punct", PUNCT_SMALL_SHA256)
 
 
 def main() -> None:
@@ -130,6 +137,9 @@ def main() -> None:
     packs.append({"id": "tts-supertonic", "kind": "optional", "langs": ["vi", "en", "ko", "ja"], "requires": [],
                   "license": "OpenRAIL-M (Supertonic 3)",
                   "files": [sherpa_file(TTS_SUPERTONIC, "tts", extract=True)]})
+    packs.append({"id": "lid", "kind": "optional", "langs": [], "requires": [],
+                  "license": "MIT (Whisper tiny, OpenAI)",
+                  "files": hf_files(LID_REPO, LID_FILES, "lid")})
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({"version": CATALOG_VERSION, "packs": packs}, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

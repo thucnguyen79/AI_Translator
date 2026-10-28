@@ -24,10 +24,11 @@ class HistoryStoreTest {
     )
 
     @Test fun sessionsSurviveARestart() {
-        HistoryStore(tmp.root).save(session)
+        val named = session.copy(names = listOf("Minh", "Anna"))
+        HistoryStore(tmp.root).save(named)
 
         val reopened = HistoryStore(tmp.root).apply { load() }
-        assertEquals(listOf(session), reopened.sessions.value)
+        assertEquals(listOf(named), reopened.sessions.value)
     }
 
     @Test fun newestFirstAndDelete() {
@@ -53,5 +54,7 @@ class HistoryStoreTest {
         assertTrue(text.contains("1. [Tiếng Việt] Nhà vệ sinh ở đâu?"))
         assertTrue(text.contains("   [English] Where is the restroom?"))
         assertTrue(text.contains("2. [English] Over there"))
+        // Named seats are shown before the language.
+        assertTrue(session.copy(names = listOf("", "Anna")).toText("AI Translator").contains("2. Anna [English] Over there"))
     }
 }

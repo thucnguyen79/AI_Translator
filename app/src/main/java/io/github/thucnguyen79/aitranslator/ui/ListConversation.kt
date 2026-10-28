@@ -2,11 +2,13 @@ package io.github.thucnguyen79.aitranslator.ui
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,11 +67,14 @@ internal fun ListConversation(
     state: EngineState,
     turns: List<Turn>,
     seatLangs: List<Lang>,
+    names: List<String>,
     missing: List<Lang>,
     level: Float,
     preparing: Boolean,
     diagnostics: Boolean,
     muted: Set<Int>,
+    handsFree: Boolean,
+    onHandsFree: (Boolean) -> Unit,
     onLang: (seat: Int, Lang) -> Unit,
     onMic: (seat: Int) -> Unit,
     onType: (seat: Int, text: String) -> Unit,
@@ -86,12 +91,16 @@ internal fun ListConversation(
     val listState = rememberLazyListState()
     // Also when the last turn grows (late translation, back-translation), so its bottom stays in view.
     LaunchedEffect(turns.size, turns.lastOrNull()) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
+    val label = { seat: Int -> names.getOrNull(seat)?.takeIf { it.isNotBlank() } ?: "${seat + 1}" }
 
-    Column(Modifier.fillMaxSize().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(Modifier.fillMaxSize().imePadding().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
         if (typingSeat == null) {
             for (seat in seatLangs.indices) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text("${seat + 1}", fontSize = 18.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(end = 6.dp), color = seatColor(seat))
+                Row(
+                    Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).background(seatTint(seat)).padding(start = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(label(seat), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, modifier = Modifier.padding(end = 6.dp), color = seatColor(seat))
                     Row(Modifier.weight(1f).horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                         Lang.entries.forEach { l ->
                             FilterChip(selected = l == seatLangs[seat], onClick = { onLang(seat, l) }, label = { Text(l.nativeName) })
@@ -112,17 +121,21 @@ internal fun ListConversation(
                 TextButton(onClick = openPacks) { Text(holder.openPacks, fontSize = 13.sp) }
             }
         }
-        HorizontalDivider()
 
-        LazyColumn(Modifier.weight(1f).fillMaxWidth(), state = listState, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // The shared conversation sits on its own background, apart from each person's controls.
+        LazyColumn(
+            Modifier.weight(1f).fillMaxWidth().clip(MaterialTheme.shapes.medium).background(MaterialTheme.colorScheme.surfaceContainerHigh),
+            state = listState,
+            contentPadding = PaddingValues(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             items(turns, key = { it.id }) { turn ->
-                ListBubble(turn, seatLangs, diagnostics, ready, onOpen = { onOpen(turn) }, onEdit = { onEdit(turn) })
+                ListBubble(turn, seatLangs, label(turn.seat), diagnostics, ready, onOpen = { onOpen(turn) }, onEdit = { onEdit(turn) })
             }
         }
 
-        val speaking = (state as? EngineState.Listening)?.seat
-            ?: (state as? EngineState.NothingHeard)?.seat
-            ?: 0
+        val speaking = listOfNotNull((state as? EngineState.Listening)?.seat, (state as? EngineState.NothingHeard)?.seat)
+            .firstOrNull { it >= 0 } ?: 0
         StatusLine(state, speaking, level, preparing, SeatStrings.of(seatLangs[speaking]))
 
         typingSeat?.let { seat ->
@@ -143,49 +156,36 @@ internal fun ListConversation(
 
         for (seat in seatLangs.indices) {
             val s = SeatStrings.of(seatLangs[seat])
-            val listening = state is EngineState.Listening && state.seat == seat
-            val busyElsewhere = when (state) {
-                is EngineState.Listening -> state.seat != seat
-                is EngineState.Recognizing, is EngineState.Translating -> true
-                else -> false
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                Modifier.fillMaxWidth().clip(MaterialTheme.shapes.small).background(seatTint(seat)),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 TextButton(onClick = { typingSeat = if (typingSeat == seat) null else seat }, enabled = ready) {
                     Text(if (typingSeat == seat) s.hideKeyboard else "⌨ ${s.type}", fontSize = 13.sp)
                 }
                 TextButton(onClick = { onPhrasebook(seat) }, modifier = Modifier.semantics { contentDescription = s.phrasebook }) {
                     Text("📖", fontSize = 18.sp)
                 }
-                Button(
+                MicButton(
+                    state, seat, ready, s,
+                    Modifier.weight(1f).height(if (seatLangs.size > 2) 44.dp else 52.dp),
                     onClick = { onMic(seat) },
-                    enabled = ready && !busyElsewhere,
-                    shape = CircleShape,
-                    modifier = Modifier.weight(1f).height(if (seatLangs.size > 2) 44.dp else 52.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (listening) MaterialTheme.colorScheme.error else seatColor(seat),
-                        contentColor = Color.White,
-                    ),
-                ) {
-                    // Shrinks to fit: with 3–4 people or a large text size the full label is too wide.
-                    BasicText(
-                        if (listening) "■ ${s.stop}" else "${seat + 1} · 🎤 ${s.speak} · ${seatLangs[seat].nativeName}",
-                        style = TextStyle(color = LocalContentColor.current),
-                        maxLines = 1,
-                        autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 16.sp),
-                    )
-                }
+                    label = "${label(seat)} · 🎤 ${s.speak} · ${seatLangs[seat].nativeName}",
+                )
             }
         }
-        if (turns.isNotEmpty()) {
-            TextButton(onClick = onClear, modifier = Modifier.align(Alignment.End)) { Text("🗑 ${holder.clear}", fontSize = 13.sp) }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
+            if (handsFree) {
+                Text("🎧 ${holder.handsFree}", fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.weight(1f))
+            }
+            TextButton(onClick = { onHandsFree(!handsFree) }, enabled = ready) {
+                Text(if (handsFree) holder.handsFreeOff else "🎧 ${holder.handsFree}", fontSize = 13.sp)
+            }
+            if (turns.isNotEmpty()) TextButton(onClick = onClear) { Text("🗑 ${holder.clear}", fontSize = 13.sp) }
         }
     }
 }
-
-/** One colour per person (F1.3), readable on light and dark backgrounds. */
-private val SEAT_COLORS = listOf(Color(0xFF1E6FD9), Color(0xFF8E44AD), Color(0xFF2E8B57), Color(0xFFD35400))
-
-internal fun seatColor(seat: Int) = SEAT_COLORS[seat % SEAT_COLORS.size]
 
 /**
  * The original sentence with its translation(s) below, aligned by speaker and tinted with the speaker's colour.
@@ -193,7 +193,7 @@ internal fun seatColor(seat: Int) = SEAT_COLORS[seat % SEAT_COLORS.size]
  */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun ListBubble(turn: Turn, seatLangs: List<Lang>, diagnostics: Boolean, canEdit: Boolean, onOpen: () -> Unit, onEdit: () -> Unit) {
+private fun ListBubble(turn: Turn, seatLangs: List<Lang>, speaker: String, diagnostics: Boolean, canEdit: Boolean, onOpen: () -> Unit, onEdit: () -> Unit) {
     val first = turn.seat == 0
     val others = seatLangs.distinct().filter { it != turn.from }.mapNotNull { lang -> turn.textIn(lang)?.let { lang to it } }
     val s = SeatStrings.of(turn.from)
@@ -201,11 +201,12 @@ private fun ListBubble(turn: Turn, seatLangs: List<Lang>, diagnostics: Boolean, 
         Column(
             Modifier
                 .clip(MaterialTheme.shapes.medium)
-                .background(seatColor(turn.seat).copy(alpha = 0.16f))
+                .background(MaterialTheme.colorScheme.surface)
+                .border(2.dp, seatColor(turn.seat).copy(alpha = 0.6f), MaterialTheme.shapes.medium)
                 .combinedClickable(onClick = onOpen, onLongClick = if (canEdit) onEdit else null)
                 .padding(10.dp),
         ) {
-            if (seatLangs.size > 2) Text("${turn.seat + 1}", fontSize = 12.sp, color = seatColor(turn.seat))
+            if (seatLangs.size > 2 || speaker != "${turn.seat + 1}") Text(speaker, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = seatColor(turn.seat))
             Text(turn.source, fontSize = 17.sp)
             others.forEach { (lang, text) ->
                 Text(text, fontSize = 17.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)

@@ -75,7 +75,7 @@
     </plurals>
 
     <!-- Settings (Info tab) -->
-    <string name="seats_title">People (pass the phone)</string>
+    <string name="seats_title">Number of people</string>
     <string name="back_translate_title">Back-translation check</string>
     <string name="back_translate_desc">Under your sentence, show what the other person read translated back into your language</string>
     <string name="speech_rate_title">Reading speed</string>
@@ -87,4 +87,14 @@
     <string name="theme_system">Like the phone</string>
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
+    <string name="layout_around">Around the table</string>
+    <string name="layout_around_desc">3–4 people around the phone, each side turned to the person sitting there</string>
+    <string name="names_title">Names</string>
+    <string name="name_hint">Person %1$d</string>
+    <string name="voices_title">Voices</string>
+    <string name="voice_auto">Automatic</string>
+    <string name="voice_supertonic">Supertonic (backup voice)</string>
+    <string name="voice_none">No offline voice</string>
+    <string name="pack_lid">Spoken language detection</string>
+    <string name="pack_lid_subtitle">Hands-free mode: anyone can speak, the app tells who from the language</string>
 </resources>

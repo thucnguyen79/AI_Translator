@@ -2,6 +2,7 @@ package io.github.thucnguyen79.aitranslator.core.engine
 
 import io.github.thucnguyen79.aitranslator.core.model.AudioInput
 import io.github.thucnguyen79.aitranslator.core.model.Lang
+import io.github.thucnguyen79.aitranslator.core.model.LanguageIdentifier
 import io.github.thucnguyen79.aitranslator.core.model.SpeechRecognizer
 import io.github.thucnguyen79.aitranslator.core.model.SpeechSynthesizer
 import io.github.thucnguyen79.aitranslator.core.model.Translator
@@ -22,9 +23,12 @@ class ConversationEngineTest {
         var next: Utterance? = Utterance(FloatArray(16_000), 16_000, 0)
         var captures = 0
         var gate: CompletableDeferred<Unit>? = null
+        /** Captures after this many wait forever (until cancelled): stops hands-free loops in tests. */
+        var blockAfter = Int.MAX_VALUE
         override suspend fun capture(shouldStop: () -> Boolean): Utterance? {
             captures++
             gate?.await()
+            if (captures > blockAfter) CompletableDeferred<Unit>().await()
             return next
         }
     }
@@ -232,6 +236,53 @@ class ConversationEngineTest {
         val turn = engine.turns.value.single()
         assertEquals(mapOf(Lang.EN to "vi:en:xin chào"), turn.backTranslations)
         assertEquals(listOf(Lang.VI to Lang.EN, Lang.EN to Lang.VI), translator.calls)
+    }
+
+    @Test fun handsFreeSeatsTakeTurns() = runTest {
+        val engine = engine()
+        audio.blockAfter = 1
+        engine.setHandsFree(true)
+        advanceUntilIdle()
+
+        assertEquals(Lang.VI, engine.turns.value.single().from)
+        // Without language identification the next seat is listened to automatically.
+        assertEquals(EngineState.Listening(1), engine.state.value)
+        assertEquals(2, audio.captures)
+
+        engine.setHandsFree(false)
+        assertEquals(EngineState.Idle, engine.state.value)
+    }
+
+    @Test fun handsFreePicksTheSeatFromTheSpokenLanguage() = runTest {
+        val engine = engine()
+        engine.identifier = object : LanguageIdentifier {
+            override suspend fun identify(utterance: Utterance) = Lang.EN
+        }
+        recognizer.text = "hello"
+        audio.blockAfter = 1
+        engine.setHandsFree(true)
+        advanceUntilIdle()
+
+        val turn = engine.turns.value.single()
+        assertEquals(1, turn.seat)
+        assertEquals("vi:hello", turn.translations[Lang.VI])
+        assertEquals(EngineState.Listening(ANY_SEAT), engine.state.value)
+        engine.setHandsFree(false)
+    }
+
+    @Test fun aMicPressTakesOverHandsFreeListening() = runTest {
+        val engine = engine()
+        audio.blockAfter = 0
+        engine.setHandsFree(true)
+        runCurrent()
+        assertEquals(EngineState.Listening(0), engine.state.value)
+
+        engine.startListening(1)
+        runCurrent()
+        assertEquals(EngineState.Listening(1), engine.state.value)
+        assertEquals(2, audio.captures)
+        engine.setHandsFree(false)
+        engine.interrupt()
     }
 
     @Test fun failuresAreReported() = runTest {

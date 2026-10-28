@@ -14,7 +14,17 @@ import java.text.DateFormat
 import java.util.Date
 
 /** A saved conversation: text only, never audio (F9.1). [id] is its start time in ms. */
-data class SavedSession(val id: Long, val updated: Long, val langs: List<Lang>, val turns: List<Turn>) {
+data class SavedSession(
+    val id: Long,
+    val updated: Long,
+    val langs: List<Lang>,
+    val turns: List<Turn>,
+    /** Seat names at the time (blank = unnamed). */
+    val names: List<String> = emptyList(),
+) {
+    /** A seat's name, or its number when it has none. */
+    fun speaker(seat: Int): String = names.getOrNull(seat)?.takeIf { it.isNotBlank() } ?: "${seat + 1}"
+
     fun matches(query: String): Boolean = query.isBlank() || turns.any { it.mentions(query) }
 
     /** Plain-text transcript for sharing (F9.4): each sentence followed by its translations. */
@@ -23,7 +33,8 @@ data class SavedSession(val id: Long, val updated: Long, val langs: List<Lang>, 
         appendLine(langs.joinToString(" · ") { it.nativeName })
         turns.forEachIndexed { i, turn ->
             appendLine()
-            appendLine("${i + 1}. [${turn.from.nativeName}] ${turn.source}")
+            val name = names.getOrNull(turn.seat)?.takeIf { it.isNotBlank() }?.let { "$it " }.orEmpty()
+            appendLine("${i + 1}. $name[${turn.from.nativeName}] ${turn.source}")
             turn.translations.forEach { (lang, text) -> appendLine("   [${lang.nativeName}] $text") }
         }
     }
@@ -70,6 +81,7 @@ class HistoryStore(private val dir: File) {
             .put("id", s.id)
             .put("updated", s.updated)
             .put("langs", JSONArray(s.langs.map { it.code }))
+            .put("names", JSONArray(s.names))
             .put("turns", JSONArray(s.turns.map { t ->
                 JSONObject()
                     .put("seat", t.seat)
@@ -101,7 +113,8 @@ class HistoryStore(private val dir: File) {
                     )
                 }
             }
-            return SavedSession(o.getLong("id"), o.optLong("updated", o.getLong("id")), langs, turns)
+            val names = o.optJSONArray("names")?.let { a -> (0 until a.length()).map { a.getString(it) } }.orEmpty()
+            return SavedSession(o.getLong("id"), o.optLong("updated", o.getLong("id")), langs, turns, names)
         }
     }
 }

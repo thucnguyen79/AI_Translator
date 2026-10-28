@@ -2,6 +2,7 @@ package io.github.thucnguyen79.aitranslator.core.engine
 
 import io.github.thucnguyen79.aitranslator.core.model.AudioInput
 import io.github.thucnguyen79.aitranslator.core.model.Lang
+import io.github.thucnguyen79.aitranslator.core.model.LanguageIdentifier
 import io.github.thucnguyen79.aitranslator.core.model.SpeechRecognizer
 import io.github.thucnguyen79.aitranslator.core.model.SpeechSynthesizer
 import io.github.thucnguyen79.aitranslator.core.model.Translator
@@ -16,6 +17,9 @@ import kotlinx.coroutines.launch
 
 /** A person at the table: their position (0..3) and language. */
 data class Seat(val index: Int, val lang: Lang)
+
+/** Listening for whoever speaks next: the seat is chosen from the detected language (hands-free mode). */
+const val ANY_SEAT = -1
 
 /** Per-stage durations: recognition (from the end of speech) and translation in ms, speech length in s. */
 data class Timings(val asrMs: Long = 0, val mtMs: Long = 0, val audioSec: Double = 0.0)
@@ -84,20 +88,38 @@ class ConversationEngine(
     /** Translate each translation back into the speaker's language (F4.5); runs after speaking. */
     var backTranslate = false
 
+    /** Detects the spoken language in hands-free mode (null: the optional pack is not installed). */
+    var identifier: LanguageIdentifier? = null
+
+    private val _handsFree = MutableStateFlow(false)
+    /** Hands-free (F2.6): after each turn the engine listens again by itself. */
+    val handsFree: StateFlow<Boolean> = _handsFree.asStateFlow()
+
+    /** True while the current listening was started by hands-free mode rather than a mic press. */
+    private var autoListening = false
+    private var lastSeat: Int? = null
+
     private var job: Job? = null
     private var catchUpJob: Job? = null
     @Volatile private var stopRequested = false
     private var nextId = 1L
 
-    /** Starts listening for [seat]. Ignored while another seat is listening or its speech is processed. */
-    fun startListening(seat: Int) {
+    /**
+     * Starts listening for [seat]. Ignored while another seat is listening or its speech is processed, except
+     * that a mic press takes over from hands-free listening.
+     */
+    fun startListening(seat: Int) = startListening(seat, auto = false)
+
+    private fun startListening(seat: Int, auto: Boolean) {
         when (state.value) {
-            is EngineState.Listening, is EngineState.Recognizing, is EngineState.Translating -> return
+            is EngineState.Listening -> if (autoListening && !auto) interrupt() else return
+            is EngineState.Recognizing, is EngineState.Translating -> return
             is EngineState.Speaking -> interrupt()
             else -> Unit
         }
         val from = langOf(seat)
         stopRequested = false
+        autoListening = auto
         launchTurn(seat) {
             _state.value = EngineState.Listening(seat)
             val utterance = audio.capture { stopRequested }
@@ -116,6 +138,68 @@ class ConversationEngine(
         }
     }
 
+    /**
+     * Hands-free mode: listens again after every turn. With an [identifier] (and different languages at the
+     * table) anyone may speak and the language picks the seat; without one the seats take turns.
+     */
+    fun setHandsFree(on: Boolean) {
+        _handsFree.value = on
+        when {
+            on && isIdle() -> listenNext()
+            !on && autoListening && state.value is EngineState.Listening -> interrupt()
+        }
+    }
+
+    private fun listenNext() {
+        if (!handsFree.value) return
+        if (identifier != null && seats.map { it.lang }.distinct().size > 1) listenAnySeat() else startListening(nextSeat(), auto = true)
+    }
+
+    /** The seat after the last speaker (the first seat to begin with). */
+    private fun nextSeat(): Int {
+        val i = seats.indexOfFirst { it.index == lastSeat }
+        return seats[(i + 1) % seats.size].index
+    }
+
+    /** The seat speaking [lang]; when several do, preferably not the last speaker. Unknown language: next seat. */
+    private fun seatFor(lang: Lang?): Int {
+        val speakers = seats.filter { it.lang == lang }
+        return (speakers.firstOrNull { it.index != lastSeat } ?: speakers.firstOrNull())?.index ?: nextSeat()
+    }
+
+    private fun listenAnySeat() {
+        stopRequested = false
+        autoListening = true
+        launchTurn(ANY_SEAT) {
+            _state.value = EngineState.Listening(ANY_SEAT)
+            val utterance = audio.capture { stopRequested }
+            if (utterance == null) {
+                _state.value = EngineState.NothingHeard(ANY_SEAT)
+                return@launchTurn
+            }
+            _state.value = EngineState.Recognizing(ANY_SEAT)
+            val detected = try {
+                identifier?.identify(utterance)
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                null // fall back to taking turns
+            }
+            val seat = seatFor(detected)
+            val from = langOf(seat)
+            _state.value = EngineState.Recognizing(seat)
+            val text = recognizer.transcribe(utterance, from)
+            val asrMs = (clock() - utterance.endNanos) / 1_000_000
+            if (text.isBlank()) {
+                _state.value = EngineState.NothingHeard(ANY_SEAT)
+                return@launchTurn
+            }
+            translateAndSpeak(seat, from, text, typed = false, asrMs = asrMs, audioSec = utterance.seconds)
+        }
+    }
+
+    private fun isIdle() = state.value.let { it is EngineState.Idle || it is EngineState.NothingHeard || it is EngineState.Failed }
+
     /** Ends the current utterance now instead of waiting for silence. */
     fun stopListening() {
         stopRequested = true
@@ -124,7 +208,7 @@ class ConversationEngine(
     /** Typed input (noisy places, misrecognised words): same pipeline without the microphone. */
     fun submitText(seat: Int, text: String) {
         if (text.isBlank()) return
-        if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) interrupt()
+        if (!isIdle()) interrupt()
         val from = langOf(seat)
         launchTurn(seat) { translateAndSpeak(seat, from, text.trim(), typed = true, asrMs = 0) }
     }
@@ -136,7 +220,7 @@ class ConversationEngine(
     fun submitPhrase(seat: Int, texts: Map<Lang, String>) {
         val from = langOf(seat)
         val source = texts[from] ?: return
-        if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) interrupt()
+        if (!isIdle()) interrupt()
         launchTurn(seat) { translateAndSpeak(seat, from, source, typed = true, asrMs = 0, prepared = texts - from, phrase = true) }
     }
 
@@ -181,7 +265,8 @@ class ConversationEngine(
     /** Speaks one turn again in [lang] (the original if it was said in [lang]). */
     fun replay(turn: Turn, lang: Lang) {
         val text = turn.textIn(lang) ?: return
-        if (state.value !is EngineState.Idle && state.value !is EngineState.NothingHeard && state.value !is EngineState.Failed) return
+        if (autoListening && state.value is EngineState.Listening) interrupt() // hands-free waits for the replay
+        if (!isIdle()) return
         launchTurn(turn.seat) {
             _state.value = EngineState.Speaking(turn.seat, lang)
             tts.speak(text, lang)
@@ -191,12 +276,14 @@ class ConversationEngine(
     /** Stops whatever is running (listening, translating or speaking). */
     fun interrupt() {
         stopRequested = true
+        autoListening = false
         tts.stop()
         job?.cancel()
         _state.value = EngineState.Idle
     }
 
     fun clear() {
+        _handsFree.value = false
         interrupt()
         catchUpJob?.cancel()
         _turns.value = emptyList()
@@ -219,6 +306,7 @@ class ConversationEngine(
         val translations = targets.associateWith { prepared[it] ?: translator.translate(text, from, it) }
         val mtMs = (clock() - t0) / 1_000_000
         val id = nextId++
+        lastSeat = seat
         _turns.update { it + Turn(id, seat, from, text, translations, typed, Timings(asrMs, mtMs, audioSec), phrase = phrase) }
         val listening = seats.filter { it.index != seat && it.index !in mutedSeats }.map { it.lang }.toSet()
         for (lang in targets.filter { it in listening }) {
@@ -248,7 +336,10 @@ class ConversationEngine(
                 throw e
             } catch (e: Exception) {
                 _state.value = EngineState.Failed(e.message ?: e::class.simpleName.orEmpty())
+                _handsFree.value = false // e.g. no microphone: do not retry in a loop
             }
+            autoListening = false
+            listenNext()
         }
     }
 

@@ -2,6 +2,7 @@ package io.github.thucnguyen79.aitranslator.ui
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -68,7 +69,7 @@ object Phrasebook {
 }
 
 /**
- * Picks a phrase for [lang]'s speaker; [flipped] turns the sheet towards the person across the table.
+ * Picks a phrase for [lang]'s speaker; the sheet is turned [turn] degrees, towards that person.
  * Each entry shows the sentence in the speaker's language and, smaller, in [otherLang].
  */
 @OptIn(ExperimentalLayoutApi::class)
@@ -77,16 +78,17 @@ internal fun PhrasebookDialog(
     phrases: List<Phrase>,
     lang: Lang,
     otherLang: Lang,
-    flipped: Boolean,
+    turn: Int,
     s: SeatStrings,
     onPick: (Phrase) -> Unit,
     onDismiss: () -> Unit,
 ) {
     val categories = remember(phrases) { phrases.map { it.category }.distinct() }
     var category by remember { mutableStateOf(categories.first()) }
+    val flipped = turn == 180
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-            Column(Modifier.fillMaxSize().let { if (flipped) it.rotate(180f) else it }.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(Modifier.fillMaxSize().turned(turn).padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text("📖 ${s.phrasebook}", style = MaterialTheme.typography.titleLarge)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     categories.forEach { c ->
@@ -95,8 +97,12 @@ internal fun PhrasebookDialog(
                 }
                 HorizontalDivider()
                 // In the turned sheet the list is turned back upright, laid out in reverse and only its items are
-                // rotated: scrolling inside a 180° rotation flings the wrong way (see SeatPanel).
-                LazyColumn(Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it }, reverseLayout = flipped) {
+                // rotated: scrolling inside a 180° rotation flings the wrong way (see SeatPanel). Sideways: no fling.
+                LazyColumn(
+                    Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it },
+                    reverseLayout = flipped,
+                    flingBehavior = if (turn % 180 == 90) NoFling else ScrollableDefaults.flingBehavior(),
+                ) {
                     items(phrases.filter { it.category == category }, key = { it.id }) { phrase ->
                         Column(Modifier.fillMaxWidth().let { if (flipped) it.rotate(180f) else it }) {
                             Column(Modifier.fillMaxWidth().clickable { onPick(phrase) }.padding(vertical = 10.dp)) {

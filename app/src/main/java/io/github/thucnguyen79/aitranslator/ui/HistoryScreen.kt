@@ -145,7 +145,7 @@ private fun SessionDetail(session: SavedSession, query: String, onBack: () -> Un
                 val hit = query.isNotBlank() && turn.mentions(query)
                 Column(Modifier.fillMaxWidth()) {
                     Text(
-                        "${turn.seat + 1} · ${turn.from.nativeName}",
+                        "${session.speaker(turn.seat)} · ${turn.from.nativeName}",
                         fontSize = 12.sp,
                         color = seatColor(turn.seat),
                         fontWeight = if (hit) FontWeight.Bold else null,

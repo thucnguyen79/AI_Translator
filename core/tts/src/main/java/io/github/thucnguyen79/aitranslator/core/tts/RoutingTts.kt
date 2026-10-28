@@ -23,11 +23,24 @@ class RoutingTts(
     /** Speaking rate for every voice, 1.0 = normal (F5.3). */
     @Volatile var rate = 1f
 
+    /** Chosen voice per language: a system voice name or [SUPERTONIC_VOICE]; absent = automatic. */
+    @Volatile var choice: Map<Lang, String> = emptyMap()
+        set(value) {
+            field = value
+            system.preferred = value.filterValues { it != SUPERTONIC_VOICE }
+        }
+
+    /** Voices that can read [lang] without network: system voice names, then [SUPERTONIC_VOICE] if installed. */
+    suspend fun voiceOptions(lang: Lang): List<String> =
+        system.offlineVoiceNames(lang) + listOfNotNull(SUPERTONIC_VOICE.takeIf { lang in SupertonicTts.LANGS && supertonic() != null })
+
     suspend fun route(lang: Lang): TtsRoute {
         val offline = offlineCache.getOrPut(lang) { system.hasOfflineVoice(lang) }
+        val supertonicReady = lang in SupertonicTts.LANGS && supertonic() != null
         return when {
+            choice[lang] == SUPERTONIC_VOICE && supertonicReady -> TtsRoute.SUPERTONIC
             offline -> TtsRoute.SYSTEM
-            lang in SupertonicTts.LANGS && supertonic() != null -> TtsRoute.SUPERTONIC
+            supertonicReady -> TtsRoute.SUPERTONIC
             else -> TtsRoute.SYSTEM_ONLINE
         }
     }
@@ -55,3 +68,6 @@ class RoutingTts(
         system.stop()
     }
 }
+
+/** [RoutingTts.choice] value that selects the Supertonic voice. */
+const val SUPERTONIC_VOICE = "supertonic"

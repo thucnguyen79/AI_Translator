@@ -12,18 +12,30 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +45,7 @@ import io.github.thucnguyen79.aitranslator.AppTheme
 import io.github.thucnguyen79.aitranslator.ConversationLayout
 import io.github.thucnguyen79.aitranslator.R
 import io.github.thucnguyen79.aitranslator.core.model.Lang
+import io.github.thucnguyen79.aitranslator.core.tts.SUPERTONIC_VOICE
 import java.util.Locale
 
 /** Settings, diagnostics, credits and licences (CC-BY-SA and FunASR require attribution). */
@@ -45,6 +58,7 @@ fun AboutScreen(container: AppContainer) {
     val speechRate by container.speechRate.collectAsStateWithLifecycle()
     val fontScale by container.fontScale.collectAsStateWithLifecycle()
     val theme by container.theme.collectAsStateWithLifecycle()
+    val names by container.seatNames.collectAsStateWithLifecycle()
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Text(stringResource(R.string.app_name), style = MaterialTheme.typography.headlineSmall)
         Text(stringResource(R.string.about_tagline), fontSize = 14.sp)
@@ -53,6 +67,7 @@ fun AboutScreen(container: AppContainer) {
         listOf(
             Triple(ConversationLayout.FACE_TO_FACE, R.string.layout_face, R.string.layout_face_desc),
             Triple(ConversationLayout.LIST, R.string.layout_list, R.string.layout_list_desc),
+            Triple(ConversationLayout.AROUND, R.string.layout_around, R.string.layout_around_desc),
         ).forEach { (value, title, desc) ->
             Row(
                 Modifier.selectable(selected = layout == value, onClick = { container.setLayout(value) }),
@@ -66,9 +81,23 @@ fun AboutScreen(container: AppContainer) {
             }
         }
 
-        if (layout == ConversationLayout.LIST) {
+        if (layout != ConversationLayout.FACE_TO_FACE) {
             Text(stringResource(R.string.seats_title), style = MaterialTheme.typography.titleMedium)
             Choices(listOf(2, 3, 4), seatCount, label = { "$it" }, onSelect = container::setSeatCount)
+        }
+
+        // Names (F1.3), shown next to each person's area, on the list's buttons and in history.
+        Text(stringResource(R.string.names_title), style = MaterialTheme.typography.titleMedium)
+        val people = if (layout == ConversationLayout.FACE_TO_FACE) 2 else seatCount
+        for (seat in 0 until people) {
+            OutlinedTextField(
+                value = names[seat],
+                onValueChange = { container.setSeatName(seat, it) },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                leadingIcon = { Text("●", color = seatColor(seat), fontSize = 20.sp) },
+                placeholder = { Text(stringResource(R.string.name_hint, seat + 1)) },
+            )
         }
 
         SwitchRow(stringResource(R.string.back_translate_title), stringResource(R.string.back_translate_desc), backTranslate, container::setBackTranslate)
@@ -76,6 +105,8 @@ fun AboutScreen(container: AppContainer) {
         Text(stringResource(R.string.speech_rate_title), style = MaterialTheme.typography.titleMedium)
         val rates = listOf(0.75f to R.string.speech_rate_slow, 1f to R.string.speech_rate_normal, 1.25f to R.string.speech_rate_fast)
         Choices(rates.map { it.first }, speechRate, label = { rate -> stringResource(rates.first { it.first == rate }.second) }, onSelect = container::setSpeechRate)
+
+        Voices(container)
 
         Text(stringResource(R.string.font_size_title), style = MaterialTheme.typography.titleMedium)
         val sizes = listOf(0.9f to "A-", 1f to "A", 1.2f to "A+", 1.4f to "A++")
@@ -109,6 +140,42 @@ fun AboutScreen(container: AppContainer) {
             "Apache Commons Compress — Apache-2.0",
             "Jetpack Compose, AndroidX, Kotlin Coroutines — Apache-2.0",
         ).forEach { Text("• $it", fontSize = 14.sp) }
+    }
+}
+
+/** Choice of voice per language (F5.3): automatic, one of the phone's offline voices, or Supertonic. */
+@Composable
+private fun Voices(container: AppContainer) {
+    val context = LocalContext.current
+    val choice by container.voiceChoice.collectAsStateWithLifecycle()
+    val voicesVersion by container.voicesVersion.collectAsStateWithLifecycle()
+    val greeting = remember { Phrasebook.load(context).first().texts }
+    Text(stringResource(R.string.voices_title), style = MaterialTheme.typography.titleMedium)
+    Lang.entries.forEach { lang ->
+        val options by produceState(emptyList<String>(), voicesVersion) { value = runCatching { container.tts.voiceOptions(lang) }.getOrDefault(emptyList()) }
+        var open by remember { mutableStateOf(false) }
+        val auto = stringResource(R.string.voice_auto)
+        val supertonic = stringResource(R.string.voice_supertonic)
+        val label = { voice: String? -> when (voice) { null -> auto; SUPERTONIC_VOICE -> supertonic; else -> voice } }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(lang.nativeName, modifier = Modifier.weight(0.35f))
+            Box(Modifier.weight(0.65f)) {
+                OutlinedButton(onClick = { open = true }, enabled = options.isNotEmpty(), modifier = Modifier.fillMaxWidth()) {
+                    Text(if (options.isEmpty()) stringResource(R.string.voice_none) else "${label(choice[lang])} ▾", maxLines = 1, fontSize = 13.sp)
+                }
+                DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+                    (listOf<String?>(null) + options).forEach { voice ->
+                        DropdownMenuItem(text = { Text(label(voice), fontSize = 14.sp) }, onClick = {
+                            open = false
+                            container.setVoice(lang, voice)
+                        })
+                    }
+                }
+            }
+            IconButton(onClick = { greeting[lang]?.let { container.previewVoice(lang, it) } }, modifier = Modifier.semantics { contentDescription = "▶" }) {
+                Text("▶", fontSize = 18.sp)
+            }
+        }
     }
 }
 

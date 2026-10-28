@@ -13,7 +13,7 @@
 | 0 — Spike đo mô hình | 🟡 Gần xong | Đã chốt công nghệ; còn đo máy yếu và giọng đa dạng |
 | 1 — Nền tảng app | ✅ Xong | Đa module, gói ngôn ngữ, engine, CI xanh |
 | 2 — MVP (2 người) | ✅ Xong | Đủ các mục MVP, đã thử trên máy; còn vài trường hợp chưa tái hiện được (⚠️) |
-| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Phần lớn tính năng v1 đã làm và thử trên máy; còn F2.6, F3.2, F3.4, F3.5, F6.2, phát hành |
+| 3 — v1 (5 ngôn ngữ, 3–4 người, phát hành) | 🟡 Đang làm | Gần đủ tính năng v1; còn F3.2, F3.5, phát hành. F2.6, F3.4, F6.2 vừa làm (⚠️ chưa thử trên máy) |
 | 4 — v2 | ⬜ Chưa bắt đầu | |
 
 ## Giai đoạn 0 — Spike ([spike/README.md](../spike/README.md))
@@ -38,7 +38,7 @@
 - [x] Danh mục gói sinh tự động (`tools/gen_packs.py`), SHA-256 lấy từ nơi phát hành
 - [x] Tải gói: tải tiếp khi rớt mạng, kiểm SHA-256, giải nén an toàn, cài lần lượt có hàng đợi
 - [x] Engine hội thoại: khoá lượt, dịch một-sang-nhiều, ngắt lời, nhập phím, nghe lại
-- [x] 33 unit test (engine, gói, dấu câu, lịch sử); GitHub Actions: test + APK debug
+- [x] 36 unit test (engine, gói, dấu câu, lịch sử); GitHub Actions: test + APK debug
 - [x] Kiểm chứng trên máy thật: tải gói vi + en, hội thoại, cuộn ở nửa xoay
 - [x] Tải gói chạy nền khi rời app (foreground service, xem F8.2)
 - [ ] Ký bản release 🟡 — cấu hình xong (`keystore.properties` hoặc biến môi trường, xem [release.md](release.md)); 👤 cần tạo khoá và cất giữ
@@ -98,12 +98,14 @@
 - [x] F4.4 Một câu dịch sang mọi ngôn ngữ khác trong phiên
 - [ ] F3.1 / F4.2 zh, ko, ja 🟡 — đã nối trong app, gói tải được; **chưa** thử trên máy thật
 - [x] F1.1 3–4 người ở bố cục "Chuyền tay" (chọn số người trong tab Thông tin; mặt đối mặt luôn 2 người) — thử trên máy ✓ (3 người)
-- [ ] F6.2 Bố cục 3–4 vùng theo hướng ngồi (chia màn hình 4 phía)
+- [x] F6.2 Bố cục "Quanh bàn": 3–4 vùng, mỗi vùng quay về người ngồi phía đó (trên 180°, trái 90°, phải 270°); hộp câu mẫu, sửa câu, chữ lớn cũng quay theo; vùng hai bên không vuốt quán tính (tránh trôi sai hướng) — ⚠️ chưa thử trên máy
 - [x] F1.5 Đổi ngôn ngữ giữa chừng: dịch bù câu cũ, không mất lịch sử
-- [ ] F1.3 Màu & tên ghế 🟡 — mỗi người một màu + số thứ tự (nút nói, bong bóng, lịch sử); chưa đặt tên riêng — thử trên máy ✓
-- [ ] F2.6 Chế độ rảnh tay · F3.2 Chữ tạm thời · F3.4 Nhận diện ngôn ngữ nói · F3.5 Mô hình theo cấu hình máy
+- [x] F1.3 Màu & tên ghế: mỗi người một màu + số thứ tự (thử trên máy ✓); đặt tên trong tab Thông tin, hiện ở vùng của người đó, nút nói, bong bóng, lịch sử và file chia sẻ — ⚠️ phần tên chưa thử trên máy
+- [x] F2.6 Chế độ rảnh tay (menu ⋮ ở vùng người cầm máy, hoặc nút 🎧 ở Chuyền tay): nói xong máy tự nghe tiếp; bấm mic của ai thì người đó nói ngay; lỗi micro thì tự tắt — ⚠️ chưa thử trên máy
+- [x] F3.4 Nhận diện ngôn ngữ nói: gói tuỳ chọn "Nhận diện ngôn ngữ nói" (Whisper tiny int8, **103 MB**, không phải 75 MB như ước tính); khi rảnh tay, ai nói cũng được, máy chọn người theo ngôn ngữ; không có gói thì nghe lần lượt từng người — ⚠️ chưa thử trên máy, chưa đo độ chính xác với câu ngắn tiếng Việt
+- [ ] F3.2 Chữ tạm thời · F3.5 Mô hình theo cấu hình máy
 - [x] F4.5 Dịch ngược để kiểm tra: bật trong tab Thông tin, hiện "↩ Dịch ngược: …" dưới câu của người nói, chạy sau khi đọc xong — thử trên máy ✓ (đã bắt được bản dịch sai của câu gõ không dấu)
-- [ ] F5.3 Tốc độ đọc, chọn giọng 🟡 — có tốc độ Chậm/Bình thường/Nhanh (giọng máy + Supertonic); chưa chọn giọng — ⚠️ chưa nghe thử tốc độ
+- [x] F5.3 Tốc độ đọc Chậm/Bình thường/Nhanh; chọn giọng từng ngôn ngữ (Tự động / các giọng offline của máy / Supertonic) có nút ▶ nghe thử — ⚠️ chưa nghe thử trên máy
 - [x] F6.5 Sửa câu nhận dạng sai rồi dịch lại: nút "✎ Sửa" dưới câu của mình (Chuyền tay: nhấn giữ hoặc ✎); hộp sửa quay về người nói — thử trên máy ✓
 - [x] F7.2 Bộ cụm từ du lịch: 100 câu × 5 thứ tiếng, 8 chủ đề, nút "📖 Câu mẫu" mỗi nửa (quay về đúng người), dùng bản dịch soạn sẵn, không cần gói ngôn ngữ — thử trên máy ✓ (cả 2 nửa, cuộn ở nửa xoay đúng chiều); 👤 người bản ngữ nên rà câu zh/ko/ja
 - [x] F9.1 Tự lưu phiên (chỉ chữ, JSON trong bộ nhớ riêng của app) · F9.2 xem & tìm (cả trong bản dịch) · F9.4 chia sẻ dạng chữ song ngữ · F9.5 chế độ riêng tư — tab Lịch sử — thử trên máy ✓ (tự lưu, tìm trong bản dịch, mở phiên, bảng chia sẻ, xoá); chế độ riêng tư chưa thử
@@ -138,12 +140,18 @@
 - [x] Chữ của mỗi nửa theo ngôn ngữ của nửa đó (vi/en/zh/ko/ja): Nói, Nhập/Ẩn bàn phím, Dừng, Xoá, Nghe lại, trạng thái, cảnh báo, hộp xác nhận xoá
 - [x] Chữ lớn toàn màn hình: hiện ngôn ngữ của người ở hướng đang quay tới (cả các nút); bấm xoay đổi sang người phía bên kia; sửa chữ tiếng Việt cỡ lớn bị chồng dòng
 
+## Yêu cầu của anh/chị (2026-10-28, lần 2)
+
+- [x] Bố trí lại nút ở chế độ mặt đối mặt: bỏ hàng chip ngôn ngữ, gom vào một thanh công cụ (nút ngôn ngữ ▾ chọn ngay trong vùng, ⌨, 📖, 🔊, ⋮ cho người cầm máy, nút nói) → phần hội thoại cao thêm khoảng 100 dp mỗi nửa — ⚠️ chưa thử trên máy
+- [x] Nền mỗi vùng mang màu của người ngồi đó (mặt đối mặt, quanh bàn); Chuyền tay: khung hội thoại nền riêng, hàng điều khiển của mỗi người tô màu người đó, bong bóng viền màu người nói — ⚠️ chưa thử trên máy
+- [x] F6.2 bố cục 4 phía · F2.6 rảnh tay · F3.4 nhận diện ngôn ngữ · chọn giọng · đặt tên (các mục ở trên)
+
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
-1. Nghe thử tốc độ đọc Chậm/Nhanh; thử chế độ riêng tư
+1. Thử trên máy: thanh công cụ mới, nền phân vùng, Quanh bàn (3–4 người), rảnh tay (có và không có gói nhận diện), chọn giọng, tên; nghe thử tốc độ đọc; chế độ riêng tư
 2. 👤 Thử các mục ⚠️ cũ: hỏi quyền micro (cài mới app), dùng dữ liệu di động khi tải, máy thiếu giọng offline
 3. Phát hành: 👤 tạo khoá ký, kiểm tra kích thước bản release, ảnh chụp màn hình
-4. Còn lại của v1: F6.2 bố cục 4 phía · F2.6 rảnh tay · F3.4 nhận diện ngôn ngữ nói (cần thêm mô hình ~75 MB) · F3.2 chữ tạm thời
+4. Còn lại của v1: F3.2 chữ tạm thời · F3.5 mô hình theo cấu hình máy
 5. 👤 Song song: thử zh/ko/ja trên máy, đo máy yếu, ghi âm giọng vùng miền
 
 ## Nhật ký cập nhật
@@ -158,3 +166,4 @@
 | 2026-10-28 | `f358c16` | Thử trên máy các mục MVP mới; sửa crash khi tải gói, hàng chọn ngôn ngữ ở nửa trên; thêm route TTS vào Chẩn đoán |
 | 2026-10-28 | `53e3c71` | v1: F7.2 câu mẫu, F6.5 sửa câu, F4.5 dịch ngược, F9 lịch sử, F5.3 tốc độ đọc, F10.2 cỡ chữ & giao diện, F1.1 3–4 người, F1.3 màu ghế; cấu hình ký release, chính sách quyền riêng tư — chưa thử trên máy (máy chưa cắm) |
 | 2026-10-28 | `d1bb405` | Thử v1 trên máy: câu mẫu, sửa câu, dịch ngược, lịch sử, 3 người, cỡ chữ, giao diện ✓; sửa tự cuộn, cuộn câu mẫu ở nửa xoay, màu thanh trạng thái, nút nói bị cắt chữ |
+| 2026-10-28 | _(commit này)_ | Thanh công cụ gọn + nền phân vùng (yêu cầu mới), F6.2 Quanh bàn, F2.6 rảnh tay, F3.4 gói nhận diện ngôn ngữ (103 MB), chọn giọng, tên từng người — chưa thử trên máy (máy chưa cắm) |

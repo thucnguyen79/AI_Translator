@@ -4,10 +4,12 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.content.ContextCompat
 import io.github.thucnguyen79.aitranslator.core.engine.ConversationEngine
+import io.github.thucnguyen79.aitranslator.core.engine.EngineState
 import io.github.thucnguyen79.aitranslator.core.engine.Seat
 import io.github.thucnguyen79.aitranslator.core.engine.Turn
 import io.github.thucnguyen79.aitranslator.core.model.AudioInput
 import io.github.thucnguyen79.aitranslator.core.model.Lang
+import io.github.thucnguyen79.aitranslator.core.model.LanguageIdentifier
 import io.github.thucnguyen79.aitranslator.core.model.SpeechRecognizer
 import io.github.thucnguyen79.aitranslator.core.model.Utterance
 import io.github.thucnguyen79.aitranslator.core.packs.ModelLocator
@@ -18,6 +20,7 @@ import io.github.thucnguyen79.aitranslator.core.speech.AsrModel
 import io.github.thucnguyen79.aitranslator.core.speech.SherpaRecognizer
 import io.github.thucnguyen79.aitranslator.core.speech.VadAudioInput
 import io.github.thucnguyen79.aitranslator.core.speech.ViPunctuator
+import io.github.thucnguyen79.aitranslator.core.speech.WhisperLanguageId
 import io.github.thucnguyen79.aitranslator.core.translate.BergamotTranslator
 import io.github.thucnguyen79.aitranslator.core.tts.RoutingTts
 import io.github.thucnguyen79.aitranslator.core.tts.SupertonicTts
@@ -60,6 +63,7 @@ class AppContainer(context: Context) {
     private val translator = BergamotTranslator(models::bergamotDir)
     private val audioInput = LazyAudioInput()
     private val recognizer = LazyRecognizer()
+    private val languageId = LazyLanguageId()
 
     val engine = ConversationEngine(
         audioInput, recognizer, translator, tts, scope,
@@ -96,6 +100,48 @@ class AppContainer(context: Context) {
         applySeats()
     }
 
+    /** Optional short names per seat (F1.3); blank = shown by number. */
+    val seatNames = MutableStateFlow(List(4) { prefs.getString("name$it", "").orEmpty() })
+
+    fun setSeatName(seat: Int, name: String) {
+        seatNames.update { names -> names.toMutableList().also { it[seat] = name.take(MAX_NAME) } }
+        prefs.edit().putString("name$seat", name.take(MAX_NAME)).apply()
+    }
+
+    /** Hands-free mode (F2.6), see [ConversationEngine.setHandsFree]. */
+    val handsFree get() = engine.handsFree
+
+    fun setHandsFree(on: Boolean) {
+        updateIdentifier()
+        // Whisper takes a moment to load: start now rather than on the first utterance.
+        if (on && engine.identifier != null) scope.launch { runCatching { languageId.prepare() } }
+        engine.setHandsFree(on)
+    }
+
+    /** Uses spoken-language detection once its optional pack is installed. */
+    private fun updateIdentifier() {
+        engine.identifier = if (models.lidDir != null) languageId else null
+    }
+
+    /** Chosen voice per language: a system voice name or SUPERTONIC_VOICE; absent = automatic (F5.3). */
+    val voiceChoice = MutableStateFlow(
+        Lang.entries.mapNotNull { lang -> prefs.getString("voice_${lang.code}", null)?.let { lang to it } }.toMap(),
+    )
+
+    fun setVoice(lang: Lang, voice: String?) {
+        voiceChoice.update { if (voice == null) it - lang else it + (lang to voice) }
+        tts.choice = voiceChoice.value
+        prefs.edit().apply { if (voice == null) remove("voice_${lang.code}") else putString("voice_${lang.code}", voice) }.apply()
+        tts.invalidate()
+        voicesVersion.update { it + 1 }
+    }
+
+    /** Reads a greeting from the phrasebook with the current voice for [lang]. */
+    fun previewVoice(lang: Lang, sample: String) {
+        if (engine.state.value !is EngineState.Idle) return
+        scope.launch { runCatching { tts.speak(sample, lang) } }
+    }
+
     val history = HistoryStore(File(context.filesDir, "history"))
 
     /** Private mode: conversations are not saved (F9.5). */
@@ -110,7 +156,7 @@ class AppContainer(context: Context) {
 
     private fun saveSession(id: Long, turns: List<Turn>) {
         if (turns.isEmpty() || privateMode.value) return
-        runCatching { history.save(SavedSession(id, System.currentTimeMillis(), seatLangs.value, turns)) }
+        runCatching { history.save(SavedSession(id, System.currentTimeMillis(), seatLangs.value, turns, seatNames.value)) }
     }
 
     /** Clears the screen and starts a new conversation; the old one stays in history (F9.3). */
@@ -211,6 +257,7 @@ class AppContainer(context: Context) {
 
     init {
         tts.rate = speechRate.value
+        tts.choice = voiceChoice.value
         applySeats()
         scope.launch(Dispatchers.IO) { history.load() }
         // Autosave: the current conversation is written a moment after it last changed (new turn, late
@@ -229,6 +276,7 @@ class AppContainer(context: Context) {
      * turn does not wait 1–2 s for them. Safe to call repeatedly; already loaded models are skipped.
      */
     fun preload() {
+        updateIdentifier()
         val langs = engine.seats.map { it.lang }.distinct()
         if (langs.size < 2 || !langs.all(packs::isLanguageReady)) return
         preloadJob?.cancel()
@@ -277,6 +325,25 @@ class AppContainer(context: Context) {
         }
     }
 
+    /** Whisper language identification, loaded on first use from the optional "lid" pack. */
+    private inner class LazyLanguageId : LanguageIdentifier {
+        private val mutex = Mutex()
+        private var lid: WhisperLanguageId? = null
+
+        suspend fun prepare(): WhisperLanguageId = mutex.withLock {
+            lid ?: run {
+                val dir = checkNotNull(models.lidDir) { "Language detection pack is not installed" }
+                val t0 = System.nanoTime()
+                WhisperLanguageId(dir).also {
+                    lid = it
+                    loadTimes.update { times -> times + ("LID" to (System.nanoTime() - t0) / 1_000_000) }
+                }
+            }
+        }
+
+        override suspend fun identify(utterance: Utterance): Lang? = prepare().identify(utterance)
+    }
+
     /** One sherpa-onnx recognizer per installed model, created on first use (or by [preload]). */
     private inner class LazyRecognizer : SpeechRecognizer {
         private val mutex = Mutex()
@@ -304,7 +371,16 @@ class AppContainer(context: Context) {
     }
 }
 
-enum class ConversationLayout { FACE_TO_FACE, LIST }
+enum class ConversationLayout {
+    /** Two people facing each other across the phone. */
+    FACE_TO_FACE,
+    /** One list, passed around (2–4 people). */
+    LIST,
+    /** 3–4 people around the phone, one area turned to each side (F6.2). */
+    AROUND,
+}
+
+private const val MAX_NAME = 12
 
 enum class AppTheme { SYSTEM, LIGHT, DARK }
 

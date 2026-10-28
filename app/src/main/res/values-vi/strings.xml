@@ -68,7 +68,7 @@
     </plurals>
 
     <!-- Cài đặt (tab Thông tin) -->
-    <string name="seats_title">Số người (chuyền tay)</string>
+    <string name="seats_title">Số người</string>
     <string name="back_translate_title">Dịch ngược để kiểm tra</string>
     <string name="back_translate_desc">Dưới câu của bạn, hiện bản người kia đọc được dịch ngược lại tiếng của bạn</string>
     <string name="speech_rate_title">Tốc độ đọc</string>
@@ -80,4 +80,14 @@
     <string name="theme_system">Theo máy</string>
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
+    <string name="layout_around">Quanh bàn</string>
+    <string name="layout_around_desc">3–4 người ngồi quanh máy, mỗi phía quay về người ngồi ở đó</string>
+    <string name="names_title">Tên từng người</string>
+    <string name="name_hint">Người %1$d</string>
+    <string name="voices_title">Giọng đọc</string>
+    <string name="voice_auto">Tự động</string>
+    <string name="voice_supertonic">Supertonic (giọng dự phòng)</string>
+    <string name="voice_none">Chưa có giọng offline</string>
+    <string name="pack_lid">Nhận diện ngôn ngữ nói</string>
+    <string name="pack_lid_subtitle">Chế độ rảnh tay: ai nói cũng được, máy tự nhận ra theo ngôn ngữ</string>
 </resources>

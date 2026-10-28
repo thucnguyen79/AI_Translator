@@ -21,6 +21,9 @@ class SystemTts(context: Context) : SpeechSynthesizer, AutoCloseable {
     /** Speaking rate, 1.0 = normal. */
     @Volatile var rate = 1f
 
+    /** Chosen voice name per language (F5.3); a missing or uninstalled voice falls back to the best match. */
+    @Volatile var preferred: Map<Lang, String> = emptyMap()
+
     init {
         tts.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
             override fun onStart(utteranceId: String) = Unit
@@ -50,6 +53,12 @@ class SystemTts(context: Context) : SpeechSynthesizer, AutoCloseable {
         return tts.isLanguageAvailable(lang.locale) >= TextToSpeech.LANG_AVAILABLE && offlineVoice(lang) != null
     }
 
+    /** Names of the installed offline voices for [lang], best match (same country) first. */
+    suspend fun offlineVoiceNames(lang: Lang): List<String> {
+        if (!awaitReady()) return emptyList()
+        return offlineVoices(lang).map { it.name }
+    }
+
     override suspend fun speak(text: String, lang: Lang) {
         if (!awaitReady()) return
         val voice = offlineVoice(lang)
@@ -72,9 +81,13 @@ class SystemTts(context: Context) : SpeechSynthesizer, AutoCloseable {
 
     private suspend fun awaitReady(): Boolean = withTimeout(10_000) { ready.await() }
 
-    private fun offlineVoice(lang: Lang): Voice? = tts.voices.orEmpty()
+    private fun offlineVoices(lang: Lang): List<Voice> = tts.voices.orEmpty()
         .filter { it.locale.language == lang.locale.language && isOffline(it) }
-        .minByOrNull { if (it.locale.country == lang.locale.country) 0 else 1 }
+        .sortedWith(compareBy({ if (it.locale.country == lang.locale.country) 0 else 1 }, { it.name }))
+
+    private fun offlineVoice(lang: Lang): Voice? = offlineVoices(lang).let { voices ->
+        voices.firstOrNull { it.name == preferred[lang] } ?: voices.firstOrNull()
+    }
 
     private fun isOffline(v: Voice) =
         !v.isNetworkConnectionRequired && TextToSpeech.Engine.KEY_FEATURE_NOT_INSTALLED !in v.features.orEmpty()

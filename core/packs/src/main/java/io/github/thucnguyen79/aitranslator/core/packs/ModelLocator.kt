@@ -21,4 +21,7 @@ class ModelLocator(private val packs: PackManager) {
 
     /** Null when the optional Supertonic pack is not installed. */
     val supertonicDir: File? get() = File(packs.dir("tts-supertonic"), "tts").takeIf { packs.isInstalled("tts-supertonic") }
+
+    /** Null when the optional language-identification pack is not installed. */
+    val lidDir: File? get() = File(packs.dir("lid"), "lid").takeIf { packs.isInstalled("lid") }
 }

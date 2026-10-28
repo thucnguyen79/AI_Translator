@@ -7,7 +7,7 @@ import android.speech.tts.TextToSpeech
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.gestures.ScrollableDefaults
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,15 +15,16 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.foundation.text.KeyboardActions
@@ -32,10 +33,15 @@ import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -50,11 +56,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -65,6 +74,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.thucnguyen79.aitranslator.AppContainer
 import io.github.thucnguyen79.aitranslator.ConversationLayout
+import io.github.thucnguyen79.aitranslator.core.engine.ANY_SEAT
 import io.github.thucnguyen79.aitranslator.core.engine.EngineState
 import io.github.thucnguyen79.aitranslator.core.engine.Turn
 import io.github.thucnguyen79.aitranslator.core.model.Lang
@@ -72,12 +82,11 @@ import io.github.thucnguyen79.aitranslator.core.tts.SupertonicTts
 import io.github.thucnguyen79.aitranslator.core.tts.TtsRoute
 import java.util.Locale
 
-/** Seat 1 sits across the table: its half (and anything shown to it) is rotated 180°. */
-private fun isFlipped(seat: Int) = seat == 1
-
 /**
- * Two people facing each other across the phone. Each half shows the conversation in its own language,
- * with buttons and messages in that language, and has its own microphone button.
+ * Face to face: two people across the phone, the top half turned to the person opposite. Around the table:
+ * 3–4 people, one area turned to each side (F6.2). Each area shows the conversation in its own language, with
+ * buttons and messages in that language, and has its own microphone button. The list layout is in
+ * [ListConversation].
  */
 @Composable
 fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, openPacks: () -> Unit) {
@@ -91,10 +100,14 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
     val muted by container.mutedSeats.collectAsStateWithLifecycle()
     val voicesVersion by container.voicesVersion.collectAsStateWithLifecycle()
     val seatLangs by container.seatLangs.collectAsStateWithLifecycle()
+    val names by container.seatNames.collectAsStateWithLifecycle()
+    val handsFree by container.handsFree.collectAsStateWithLifecycle()
+    val layout by container.layout.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val phrases = remember { Phrasebook.load(context) }
     // Re-evaluated whenever a pack finishes installing.
     val ready = remember(packStates) { Lang.entries.associateWith { container.packs.isLanguageReady(it) } }
+    val canDetect = remember(packStates) { container.models.lidDir != null }
     var big by remember { mutableStateOf<BigText?>(null) }
     var confirmClear by remember { mutableStateOf(false) }
     /** The seat whose phrasebook is open. */
@@ -108,19 +121,25 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
         engine.catchUpTranslations() // a newly installed pack can fill gaps in earlier turns
         container.refreshVoices() // the Supertonic pack may have just been installed
     }
+    if (seatLangs.size < 2) return
+    // Dialogs are turned towards their reader, except in the upright list layout.
+    val dialogTurn = { seat: Int -> if (layout == ConversationLayout.LIST) 0 else seatTurn(seat, layout) }
 
     big?.let { b ->
         turns.firstOrNull { it.id == b.turnId }?.let { turn ->
-            BigTextDialog(turn, b.readerSeat, seatLangs, onRotate = { big = b.copy(readerSeat = 1 - b.readerSeat) }) { big = null }
+            BigTextDialog(
+                turn, b.readerSeat, seatLangs, degrees = seatTurn(b.readerSeat, layout),
+                // Rotating hands the screen to the next person, in their language.
+                onRotate = { big = b.copy(readerSeat = (b.readerSeat + 1) % seatLangs.size) },
+            ) { big = null }
         }
     }
-    val faceToFace = container.layout.collectAsStateWithLifecycle().value == ConversationLayout.FACE_TO_FACE
     phrasebookSeat?.let { seat ->
         PhrasebookDialog(
             phrases = phrases,
             lang = seatLangs[seat],
             otherLang = seatLangs.firstOrNull { it != seatLangs[seat] } ?: seatLangs[seat],
-            flipped = faceToFace && isFlipped(seat),
+            turn = dialogTurn(seat),
             s = SeatStrings.of(seatLangs[seat]),
             onPick = { phrase ->
                 phrasebookSeat = null
@@ -133,7 +152,7 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
         EditDialog(
             text = turn.source,
             s = SeatStrings.of(turn.from),
-            flipped = faceToFace && isFlipped(turn.seat),
+            turn = dialogTurn(turn.seat),
             onSave = { text ->
                 engine.editTurn(turn.id, text)
                 editing = null
@@ -157,24 +176,26 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
         )
     }
 
-    val onLang = { seat: Int, lang: Lang -> container.setSeatLang(seat, lang) }
     val onMic = { seat: Int ->
         if (state is EngineState.Listening && (state as EngineState.Listening).seat == seat) engine.stopListening()
         else withMic { engine.startListening(seat) }
     }
-    if (seatLangs.size < 2) return
-    if (!faceToFace) {
+    val onHandsFree = { on: Boolean -> if (on) withMic { container.setHandsFree(true) } else container.setHandsFree(false) }
+    if (layout == ConversationLayout.LIST) {
         ListConversation(
             container = container,
             state = state,
             turns = turns,
             seatLangs = seatLangs,
+            names = names,
             missing = seatLangs.distinct().filterNot { ready.getValue(it) },
             level = level,
             preparing = preparing,
             diagnostics = diagnostics,
             muted = muted,
-            onLang = onLang,
+            handsFree = handsFree,
+            onHandsFree = onHandsFree,
+            onLang = container::setSeatLang,
             onMic = onMic,
             onType = engine::submitText,
             // In one shared list a sentence is enlarged for the other person.
@@ -187,58 +208,83 @@ fun ConversationScreen(container: AppContainer, withMic: (() -> Unit) -> Unit, o
         return
     }
 
+    @Composable
+    fun Panel(seat: Int, modifier: Modifier) {
+        val lang = seatLangs[seat]
+        val others = seatLangs.filterIndexed { i, _ -> i != seat }
+        // Your own sentences show what the person opposite reads.
+        val opposite = seatLangs.getOrNull(if (seat < 2) 1 - seat else 5 - seat)?.takeIf { it != lang }
+        SeatPanel(
+            modifier = modifier,
+            seat = seat,
+            turn = seatTurn(seat, layout),
+            typing = typingSeat == seat,
+            onTyping = { on -> typingSeat = if (on) seat else null },
+            lang = lang,
+            otherLang = opposite ?: others.firstOrNull { it != lang } ?: lang,
+            name = names[seat],
+            missing = (others + lang).distinct().filterNot { ready.getValue(it) },
+            turns = turns,
+            state = state,
+            level = level,
+            preparing = preparing,
+            diagnostics = diagnostics,
+            muted = seat in muted,
+            voicesVersion = voicesVersion,
+            // Only the phone holder (seat 0) can clear or start hands-free, so guests cannot do it by accident.
+            holder = if (seat == 0) HolderActions(handsFree, canDetect, onHandsFree) else null,
+            onToggleMute = { container.toggleMute(seat) },
+            container = container,
+            onLang = { l -> container.setSeatLang(seat, l) },
+            onMic = { onMic(seat) },
+            onType = { text -> engine.submitText(seat, text) },
+            onReplay = { turn -> engine.replay(turn, lang) },
+            // Your own sentence is shown to the next person; someone else's sentence to you.
+            onOpen = { turn -> big = BigText(turn.id, readerSeat = if (turn.seat == seat) (seat + 1) % seatLangs.size else seat) },
+            onEdit = { editing = it },
+            onPhrasebook = { phrasebookSeat = seat },
+            onClear = { confirmClear = true },
+            openPacks = openPacks,
+        )
+    }
+
     // imePadding: with edge-to-edge the keyboard would otherwise cover the input field and buttons.
     Column(Modifier.fillMaxSize().imePadding()) {
-        for (seat in listOf(1, 0)) {
-            val weight = when (typingSeat) {
-                null -> 1f
-                seat -> 1.6f
-                else -> 0.6f
-            }
-            val modifier = Modifier.weight(weight).fillMaxWidth().let { if (isFlipped(seat)) it.rotate(180f) else it }
-            SeatPanel(
-                modifier = modifier,
-                seat = seat,
-                typing = typingSeat == seat,
-                onTyping = { on -> typingSeat = if (on) seat else null },
-                lang = seatLangs[seat],
-                otherLang = seatLangs[1 - seat],
-                missing = listOf(seatLangs[seat], seatLangs[1 - seat]).distinct().filterNot { ready.getValue(it) },
-                turns = turns,
-                state = state,
-                level = level,
-                preparing = preparing,
-                diagnostics = diagnostics,
-                muted = seat in muted,
-                voicesVersion = voicesVersion,
-                onToggleMute = { container.toggleMute(seat) },
-                container = container,
-                onLang = { lang -> onLang(seat, lang) },
-                onMic = { onMic(seat) },
-                onType = { text -> engine.submitText(seat, text) },
-                onReplay = { turn -> engine.replay(turn, seatLangs[seat]) },
-                // Your own sentence is shown to the person opposite; someone else's sentence to you.
-                onOpen = { turn -> big = BigText(turn.id, readerSeat = if (turn.seat == seat) 1 - seat else seat) },
-                onEdit = { editing = it },
-                onPhrasebook = { phrasebookSeat = seat },
-                onClear = { confirmClear = true },
-                openPacks = openPacks,
-            )
-            if (seat == 1) HorizontalDivider(thickness = 2.dp)
+        fun weightOf(vararg seats: Int, base: Float) = when (val typing = typingSeat) {
+            null -> base
+            in seats -> base * 1.6f
+            else -> base * 0.6f
         }
+        val around = layout == ConversationLayout.AROUND && seatLangs.size > 2
+        Panel(1, Modifier.weight(weightOf(1, base = if (around) 0.3f else 1f)).fillMaxWidth().turned(180))
+        HorizontalDivider(thickness = 2.dp)
+        if (around) {
+            Row(Modifier.weight(weightOf(2, 3, base = 0.4f)).fillMaxWidth()) {
+                Panel(2, Modifier.weight(1f).fillMaxHeight().turned(90))
+                if (seatLangs.size > 3) Panel(3, Modifier.weight(1f).fillMaxHeight().turned(270))
+            }
+            HorizontalDivider(thickness = 2.dp)
+        }
+        Panel(0, Modifier.weight(weightOf(0, base = if (around) 0.3f else 1f)).fillMaxWidth())
     }
 }
+
+/** What only the phone holder's area offers: hands-free mode and clearing. */
+private class HolderActions(val handsFree: Boolean, val canDetect: Boolean, val setHandsFree: (Boolean) -> Unit)
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun SeatPanel(
     modifier: Modifier,
     seat: Int,
+    /** How far this area is turned (0, 90, 180, 270). */
+    turn: Int,
     typing: Boolean,
     onTyping: (Boolean) -> Unit,
     lang: Lang,
     otherLang: Lang,
-    /** Languages of this half or the other whose packs are not installed: input stays disabled until then. */
+    name: String,
+    /** Languages at the table whose packs are not installed: input stays disabled until then. */
     missing: List<Lang>,
     turns: List<Turn>,
     state: EngineState,
@@ -247,6 +293,7 @@ private fun SeatPanel(
     diagnostics: Boolean,
     muted: Boolean,
     voicesVersion: Int,
+    holder: HolderActions?,
     onToggleMute: () -> Unit,
     container: AppContainer,
     onLang: (Lang) -> Unit,
@@ -262,28 +309,15 @@ private fun SeatPanel(
     val s = SeatStrings.of(lang)
     val ready = missing.isEmpty()
     var text by remember { mutableStateOf("") }
+    var choosingLang by remember { mutableStateOf(false) }
+    var menu by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
     // Also when the last turn grows (late translation, back-translation), so its bottom stays in view.
     LaunchedEffect(turns.size, turns.lastOrNull()) { if (turns.isNotEmpty()) listState.animateScrollToItem(turns.lastIndex) }
     var route by remember(lang) { mutableStateOf<TtsRoute?>(null) }
     LaunchedEffect(lang, voicesVersion) { route = runCatching { container.tts.route(lang) }.getOrNull() }
 
-    Column(modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        if (!typing) {
-            // Wrapping instead of a horizontal scroll: in the rotated half a scroll flings the wrong way, and all
-            // five languages plus the speaker toggle fit in two lines.
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.Center) {
-                Lang.entries.forEach { l -> FilterChip(selected = l == lang, onClick = { onLang(l) }, label = { Text(l.nativeName) }) }
-                // Read translations into this seat's language aloud, or only show them.
-                TextButton(onClick = onToggleMute, modifier = Modifier.semantics { contentDescription = s.readAloud }) {
-                    Text(if (muted) "🔇" else "🔊", fontSize = 20.sp)
-                }
-                // Only the phone holder's half (bottom) offers clearing, so the guest cannot wipe it by accident.
-                if (seat == 0 && turns.isNotEmpty()) {
-                    TextButton(onClick = onClear, modifier = Modifier.semantics { contentDescription = s.clear }) { Text("🗑", fontSize = 20.sp) }
-                }
-            }
-        }
+    Column(modifier.background(seatTint(seat)).padding(horizontal = 10.dp, vertical = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         if (route?.offline == false && !muted) NoVoiceNotice(lang, s, container, openPacks)
         // The conversation stays visible without packs; only this side's input is disabled.
         if (!ready) {
@@ -297,27 +331,52 @@ private fun SeatPanel(
                 TextButton(onClick = openPacks) { Text(s.openPacks, fontSize = 13.sp) }
             }
         }
+        if (holder?.handsFree == true) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "🎧 ${if (holder.canDetect) s.handsFreeAnyone else s.handsFreeTurns}",
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f),
+                )
+                TextButton(onClick = { holder.setHandsFree(false) }) { Text(s.handsFreeOff, fontSize = 13.sp) }
+            }
+        }
 
-        // In the rotated (top) panel the list is turned back upright, laid out in reverse and only its items are
-        // rotated: scrolling inside a 180° graphicsLayer flings in the wrong direction on release.
-        val flipped = isFlipped(seat)
-        LazyColumn(
-            Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it },
-            state = listState,
-            reverseLayout = flipped,
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            items(turns, key = { it.id }) { turn ->
-                Box(if (flipped) Modifier.rotate(180f) else Modifier) {
-                    TurnBubble(
-                        turn, seat, lang, otherLang, ready, diagnostics, s,
-                        onReplay = { onReplay(turn) }, onOpen = { onOpen(turn) }, onEdit = { onEdit(turn) },
-                    )
+        if (choosingLang) {
+            // Chosen in place, so the choice is turned towards this person like the rest of the area.
+            FlowRow(Modifier.weight(1f).fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                Lang.entries.forEach { l ->
+                    FilterChip(selected = l == lang, onClick = {
+                        onLang(l)
+                        choosingLang = false
+                    }, label = { Text(l.nativeName, fontSize = 16.sp) })
+                }
+            }
+        } else {
+            // In the half-turned (top) area the list is turned back upright, laid out in reverse and only its items
+            // are rotated: scrolling inside a 180° graphicsLayer flings in the wrong direction on release. Sideways
+            // areas do not fling at all (see NoFling).
+            val flipped = turn == 180
+            LazyColumn(
+                Modifier.weight(1f).fillMaxWidth().let { if (flipped) it.rotate(180f) else it },
+                state = listState,
+                reverseLayout = flipped,
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                flingBehavior = if (turn % 180 == 90) NoFling else ScrollableDefaults.flingBehavior(),
+            ) {
+                items(turns, key = { it.id }) { t ->
+                    Box(if (flipped) Modifier.rotate(180f) else Modifier) {
+                        TurnBubble(
+                            t, seat, lang, otherLang, ready, diagnostics, s,
+                            onReplay = { onReplay(t) }, onOpen = { onOpen(t) }, onEdit = { onEdit(t) },
+                        )
+                    }
                 }
             }
         }
 
-        StatusLine(state, seat, level, preparing, s)
+        StatusLine(state, seat, level, preparing, s, name)
 
         if (typing && ready) {
             OutlinedTextField(
@@ -333,24 +392,72 @@ private fun SeatPanel(
                 }),
             )
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            TextButton(onClick = { onTyping(!typing) }, enabled = ready) { Text(if (typing) s.hideKeyboard else "⌨ ${s.type}") }
+        // One toolbar instead of a row of language chips: more room for the conversation.
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(2.dp), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedButton(
+                onClick = { choosingLang = !choosingLang },
+                contentPadding = ButtonDefaults.TextButtonContentPadding,
+                modifier = Modifier.semantics { contentDescription = s.language },
+            ) { Text("${lang.nativeName} ▾", maxLines = 1) }
+            ToolIcon(if (typing) "✕" else "⌨", if (typing) s.hideKeyboard else s.type, enabled = ready) { onTyping(!typing) }
             // Phrases carry their own translations, so they work before any pack is installed.
-            if (!typing) TextButton(onClick = onPhrasebook) { Text("📖 ${s.phrasebook}") }
-            val listening = state is EngineState.Listening && state.seat == seat
-            val busyElsewhere = when (state) {
-                is EngineState.Listening -> state.seat != seat
-                is EngineState.Recognizing, is EngineState.Translating -> true
-                else -> false
+            ToolIcon("📖", s.phrasebook, onClick = onPhrasebook)
+            // Read translations into this seat's language aloud, or only show them.
+            ToolIcon(if (muted) "🔇" else "🔊", s.readAloud, onClick = onToggleMute)
+            if (holder != null) {
+                Box {
+                    ToolIcon("⋮", s.more) { menu = true }
+                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                        DropdownMenuItem(
+                            text = { Text("🎧 ${if (holder.handsFree) s.handsFreeOff else s.handsFree}") },
+                            enabled = ready,
+                            onClick = {
+                                menu = false
+                                holder.setHandsFree(!holder.handsFree)
+                            },
+                        )
+                        DropdownMenuItem(text = { Text("🗑 ${s.clear}") }, enabled = turns.isNotEmpty(), onClick = {
+                            menu = false
+                            onClear()
+                        })
+                    }
+                }
             }
-            Button(
-                onClick = onMic,
-                enabled = ready && !busyElsewhere,
-                shape = CircleShape,
-                modifier = Modifier.weight(1f).height(64.dp),
-                colors = if (listening) ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error) else ButtonDefaults.buttonColors(),
-            ) { Text(if (listening) "■ ${s.stop}" else "🎤 ${s.speak}", fontSize = 20.sp, maxLines = 1) }
+            MicButton(state, seat, ready, s, Modifier.weight(1f).height(52.dp), onMic)
         }
+    }
+}
+
+@Composable
+private fun ToolIcon(icon: String, label: String, enabled: Boolean = true, onClick: () -> Unit) {
+    IconButton(onClick = onClick, enabled = enabled, modifier = Modifier.size(40.dp).semantics { contentDescription = label }) {
+        Text(icon, fontSize = 20.sp)
+    }
+}
+
+/** The seat's microphone: pressing it while listening ends the utterance; its label shrinks to fit. */
+@Composable
+internal fun MicButton(state: EngineState, seat: Int, ready: Boolean, s: SeatStrings, modifier: Modifier, onClick: () -> Unit, label: String? = null) {
+    val listening = state is EngineState.Listening && state.seat == seat
+    val busyElsewhere = when (state) {
+        is EngineState.Listening -> state.seat != seat && state.seat != ANY_SEAT
+        is EngineState.Recognizing, is EngineState.Translating -> true
+        else -> false
+    }
+    Button(
+        onClick = onClick,
+        enabled = ready && !busyElsewhere,
+        shape = CircleShape,
+        modifier = modifier,
+        contentPadding = ButtonDefaults.TextButtonContentPadding,
+        colors = ButtonDefaults.buttonColors(containerColor = if (listening) MaterialTheme.colorScheme.error else seatColor(seat), contentColor = Color.White),
+    ) {
+        BasicText(
+            if (listening) "■ ${s.stop}" else label ?: "🎤 ${s.speak}",
+            style = TextStyle(color = LocalContentColor.current),
+            maxLines = 1,
+            autoSize = TextAutoSize.StepBased(minFontSize = 8.sp, maxFontSize = 20.sp),
+        )
     }
 }
 
@@ -379,7 +486,7 @@ private fun TurnBubble(
         Column(
             Modifier
                 .clip(MaterialTheme.shapes.medium)
-                .background(if (mine) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.secondaryContainer)
+                .background(if (mine) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface)
                 .clickable(onClick = onOpen)
                 .padding(10.dp),
         ) {
@@ -415,16 +522,13 @@ internal fun BackTranslation(text: String, s: SeatStrings) {
     Text("↩ ${s.backTranslation}: $text", fontSize = 12.sp, fontStyle = FontStyle.Italic, color = MaterialTheme.colorScheme.onSurfaceVariant)
 }
 
-/** Corrects a misrecognised sentence (F6.5); [flipped] turns it towards the person across the table. */
+/** Corrects a misrecognised sentence (F6.5), turned ([turn] degrees) towards the person who said it. */
 @Composable
-internal fun EditDialog(text: String, s: SeatStrings, flipped: Boolean, onSave: (String) -> Unit, onDismiss: () -> Unit) {
+internal fun EditDialog(text: String, s: SeatStrings, turn: Int, onSave: (String) -> Unit, onDismiss: () -> Unit) {
     var value by remember { mutableStateOf(text) }
     Dialog(onDismissRequest = onDismiss) {
         Surface(shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surface) {
-            Column(
-                Modifier.let { if (flipped) it.rotate(180f) else it }.padding(20.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            Column(Modifier.turned(turn).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("✎ ${s.edit}", style = MaterialTheme.typography.titleMedium)
                 OutlinedTextField(value = value, onValueChange = { value = it }, modifier = Modifier.fillMaxWidth())
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
@@ -459,17 +563,14 @@ internal fun NoVoiceNotice(lang: Lang, s: SeatStrings, container: AppContainer, 
 internal data class BigText(val turnId: Long, val readerSeat: Int)
 
 @Composable
-internal fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, onRotate: () -> Unit, onDismiss: () -> Unit) {
+internal fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, degrees: Int, onRotate: () -> Unit, onDismiss: () -> Unit) {
     val context = LocalContext.current
     val lang = seatLangs[readerSeat]
     val s = SeatStrings.of(lang)
     val text = turn.textIn(lang) ?: turn.source
     Dialog(onDismissRequest = onDismiss, properties = DialogProperties(usePlatformDefaultWidth = false)) {
         Surface(Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.surface) {
-            Column(
-                Modifier.fillMaxSize().let { if (isFlipped(readerSeat)) it.rotate(180f) else it }.padding(24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
+            Column(Modifier.fillMaxSize().turned(degrees).padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text(lang.nativeName, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 Box(Modifier.weight(1f).fillMaxWidth(), contentAlignment = Alignment.Center) {
                     BasicText(
@@ -486,7 +587,7 @@ internal fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, o
                 }
                 if (turn.source != text) Text(turn.source, fontSize = 15.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    // Rotating hands the screen to the person on the other side, in their language.
+                    // Rotating hands the screen to the next person at the table, in their language.
                     TextButton(onClick = onRotate) { Text("⟲ ${s.rotate}") }
                     TextButton(onClick = {
                         context.getSystemService(ClipboardManager::class.java).setPrimaryClip(ClipData.newPlainText(lang.nativeName, text))
@@ -500,10 +601,16 @@ internal fun BigTextDialog(turn: Turn, readerSeat: Int, seatLangs: List<Lang>, o
     }
 }
 
+/** What is happening, from [seat]'s point of view, after the seat's [name] when it has one. */
 @Composable
-internal fun StatusLine(state: EngineState, seat: Int, level: Float, preparing: Boolean, s: SeatStrings) {
+internal fun StatusLine(state: EngineState, seat: Int, level: Float, preparing: Boolean, s: SeatStrings, name: String = "") {
+    val mine = state.let { it is EngineState.Listening && (it.seat == seat || it.seat == ANY_SEAT) }
     val text = when (state) {
-        is EngineState.Listening -> if (state.seat == seat) s.listening else s.otherSpeaking
+        is EngineState.Listening -> when (state.seat) {
+            ANY_SEAT -> s.listeningAnyone
+            seat -> s.listening
+            else -> s.otherSpeaking
+        }
         is EngineState.Recognizing -> s.recognizing
         is EngineState.Translating -> s.translating
         is EngineState.Speaking -> s.speakingTranslation
@@ -512,9 +619,12 @@ internal fun StatusLine(state: EngineState, seat: Int, level: Float, preparing: 
         EngineState.Idle -> if (preparing) s.preparing else ""
     }
     Column(Modifier.fillMaxWidth()) {
-        if (state is EngineState.Listening && state.seat == seat) {
-            LinearProgressIndicator(progress = { level }, modifier = Modifier.fillMaxWidth().height(4.dp))
+        if (mine) LinearProgressIndicator(progress = { level }, modifier = Modifier.fillMaxWidth().height(4.dp))
+        if (text.isNotEmpty() || name.isNotBlank()) {
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                if (name.isNotBlank()) Text(name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = seatColor(seat))
+                Text(text, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
         }
-        if (text.isNotEmpty()) Text(text, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

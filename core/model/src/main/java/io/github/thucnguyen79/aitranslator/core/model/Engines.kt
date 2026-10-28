@@ -19,6 +19,12 @@ interface SpeechRecognizer {
     suspend fun transcribe(utterance: Utterance, lang: Lang): String
 }
 
+/** Tells which language an utterance is spoken in (F3.4). */
+interface LanguageIdentifier {
+    /** The detected language, or null when it is none of [Lang]. */
+    suspend fun identify(utterance: Utterance): Lang?
+}
+
 interface Translator {
     suspend fun translate(text: String, from: Lang, to: Lang): String
 }
