@@ -116,9 +116,16 @@
 - [x] ~~Lần nói đầu tiên chờ nạp mô hình~~ → nạp sẵn ở nền
 - [ ] APK debug ~97 MB (thư viện native không nén) → kiểm tra kích thước bản release, cân nhắc App Bundle
 - [ ] Một vài lỗi dấu câu của vibert-capu ("Sao Bà không hiểu?…", viết hoa sau dấu phẩy)
+- [ ] **Đổi ngôn ngữ giữa hội thoại** (thử trên máy 2026-10-28, liên quan F1.5):
+  - [ ] Câu cũ không được dịch sang ngôn ngữ mới → ghế vừa đổi thấy nguyên văn của người kia, mất nút "Nghe lại"
+  - [ ] Khi không có bản dịch, bong bóng hiện **cùng một câu hai lần** (dòng chính và dòng phụ giống nhau)
+  - [ ] Chọn ngôn ngữ chưa tải gói → **cả hai nửa ẩn toàn bộ hội thoại** (dữ liệu không mất nhưng dễ tưởng là mất)
+  - [x] Câu mới sau khi đổi được dịch đúng sang ngôn ngữ mới; đổi lại như cũ không mất câu nào
+- [ ] Nhận dạng tiếng Trung (SenseVoice) cho ra câu vô nghĩa "你唱城去。" ở một lượt nói thật → cần đo kỹ (👤 cần giọng tiếng Trung)
 
 ## Việc tiếp theo (đề xuất theo thứ tự)
 
+0. Sửa lỗi đổi ngôn ngữ giữa hội thoại (F1.5): tự dịch lại câu cũ, bỏ dòng trùng, không ẩn hội thoại khi thiếu gói
 1. F2.1 Xử lý từ chối quyền micro · F5.1 bật/tắt đọc theo ghế · F5.4 nút cài giọng / gợi ý Supertonic
 2. F10.1 Chuyển chuỗi sang `strings.xml`, thêm giao diện tiếng Anh
 3. F6.3 Bố cục danh sách (chuyền tay)
@@ -131,3 +138,4 @@
 |---|---|---|
 | 2026-10-28 | `04469d4` | Tạo checklist; Giai đoạn 1 xong, MVP đang làm |
 | 2026-10-28 | `e297de9` | F6.6 chữ lớn, F6.7 sao chép, F10.3 chẩn đoán, nạp sẵn mô hình, F9.3 xoá hội thoại, sửa bàn phím che ô nhập |
+| 2026-10-28 | — | Thử đổi ngôn ngữ giữa hội thoại trên máy: ghi 3 lỗi (F1.5) |
