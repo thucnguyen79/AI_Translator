@@ -11,9 +11,10 @@ plugins {
 // build embeds ONNX Runtime so it does not clash with onnxruntime-android's libonnxruntime.so.
 val sherpaAar = file("libs/sherpa-onnx-static-link-onnxruntime-${libs.versions.sherpaOnnx.get()}.aar")
 
-// Bergamot (Mozilla, MPL-2.0) is built from source only when its sources are present in
-// src/main/cpp/bergamot (see spike/README.md). Without it the app falls back to ML Kit for MT.
-val withBergamot = file("src/main/cpp/bergamot/CMakeLists.txt").exists()
+// Bergamot (Mozilla, MPL-2.0) is built from source only when the third_party/bergamot-translator
+// submodule is initialised (see spike/README.md). Without it the app falls back to ML Kit for MT.
+val bergamotDir = file("../../third_party/bergamot-translator")
+val withBergamot = File(bergamotDir, "CMakeLists.txt").exists()
 
 android {
     namespace = "io.github.thucnguyen79.aitranslator.spike"
@@ -35,6 +36,7 @@ android {
                     arguments += listOf(
                         // Submodules are initialised by hand (see spike/README.md); don't let CMake clone the rest.
                         "-DGIT_SUBMODULE=OFF",
+                        "-DBERGAMOT_DIR=${bergamotDir.absolutePath.replace('\\', '/')}",
                         "-DANDROID_STL=c++_shared",
                         "-DANDROID_CPP_FEATURES=exceptions",
                         "-DCMAKE_BUILD_TYPE=Release",

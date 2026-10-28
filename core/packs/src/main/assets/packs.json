@@ -1,0 +1,317 @@
+{
+  "version": 1,
+  "packs": [
+    {
+      "id": "core",
+      "kind": "shared",
+      "langs": [],
+      "requires": [],
+      "license": "MIT (Silero VAD)",
+      "files": [
+        {
+          "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/silero_vad.onnx",
+          "size": 643854,
+          "sha256": "9e2449e1087496d8d4caba907f23e0bd3f78d91fa552479bb9c23ac09cbb1fd6",
+          "path": "vad/silero_vad.onnx"
+        }
+      ]
+    },
+    {
+      "id": "speech-multi",
+      "kind": "shared",
+      "langs": [
+        "en",
+        "zh",
+        "ko",
+        "ja"
+      ],
+      "requires": [],
+      "license": "FunASR Model License (SenseVoice)",
+      "files": [
+        {
+          "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-sense-voice-zh-en-ja-ko-yue-int8-2024-07-17.tar.bz2",
+          "size": 163002883,
+          "sha256": "7d1efa2138a65b0b488df37f8b89e3d91a60676e416f515b952358d83dfd347e",
+          "path": "asr",
+          "extract": "tar.bz2"
+        }
+      ]
+    },
+    {
+      "id": "vi",
+      "kind": "language",
+      "langs": [
+        "vi"
+      ],
+      "requires": [
+        "core"
+      ],
+      "license": "Apache-2.0 (zipformer) · CC-BY-SA-4.0 (vibert-capu) · MPL-2.0 (Bergamot)",
+      "files": [
+        {
+          "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/sherpa-onnx-zipformer-vi-30M-int8-2026-02-09.tar.bz2",
+          "size": 26442384,
+          "sha256": "da8b637947091829d7ee9eda23da2a4ec7caa399233a3f4e34eb719fb2ea6b9b",
+          "path": "asr",
+          "extract": "tar.bz2"
+        },
+        {
+          "url": "https://huggingface.co/welcomyou/vibert-capu-onnx/resolve/main/vibert-capu.int8.onnx",
+          "size": 115707731,
+          "sha256": "67278b23502bbd744538e2bd9a6748b61cce171cfba6c671c2e2a46f892166fa",
+          "path": "punct/vibert-capu.int8.onnx"
+        },
+        {
+          "url": "https://huggingface.co/welcomyou/vibert-capu-onnx/resolve/main/vocab.txt",
+          "size": 254703,
+          "sha256": "b32ccb4ca8bee5eda7a0f55f7adebaa515be742c9f765151ffefcd29fcb542a1",
+          "path": "punct/vocab.txt"
+        },
+        {
+          "url": "https://huggingface.co/welcomyou/vibert-capu-onnx/resolve/main/vocabulary/labels.txt",
+          "size": 248,
+          "sha256": "a31075cfa185b5d24c3b65c009ad0740636b286090f78419eaba2d34202c2b45",
+          "path": "punct/labels.txt"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/e182522d-4844-453c-81ba-7360522f7c1d.spm",
+          "size": 757250,
+          "sha256": "cb152765d1e71ea3cf96fdb339c764b7201be7b9ab32e20cfebcf16a20fc0939",
+          "path": "mt/vien/vocab.vien.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/32d8a39d-acdd-4511-926e-b106875ae125.bin",
+          "size": 3910184,
+          "sha256": "3a071ed3d982f6eb6ee116b84067bf70041e4229e43ea65ecb6d7c2796e8851b",
+          "path": "mt/vien/lex.50.50.vien.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/ac5d5553-78cd-4b5a-846a-a51c07f148e3.bin",
+          "size": 17141051,
+          "sha256": "de4bf2b9ffb4d910e32720ec3a43655fb6f4062ce5219332f824fc1bdca7a5f4",
+          "path": "mt/vien/model.vien.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/20260522192839--8cf85580-732e-484a-8b75-7417bbef3c69--a5f5c4c0-3c8f-452d-ba95-68948247d1a4.spm",
+          "size": 785200,
+          "sha256": "76daa9a49e393e50c865c889290e4dc36e9453e5e1ec9df7b9f3bc39ea782537",
+          "path": "mt/envi/vocab.envi.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/20260522192836--32f34bd8-c481-4c26-aad9-eeddaac9cd79--cd40019d-37ce-4a14-8f11-ccddc804e7a2.bin",
+          "size": 4597684,
+          "sha256": "18116817fcd3d24dcdfd97cb57e9e60472800dae3b8a007f6f36d61d645f699c",
+          "path": "mt/envi/lex.50.50.envi.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/20260522192834--e5c737d0-a39d-4bb8-8832-2bcc5ef45e5c--991fc4d6-87c3-476d-b879-ddeff0b6cae0.bin",
+          "size": 31561787,
+          "sha256": "04fa6044593a404c2aa02b3096f203880852df6f8f41e5eb966ed9f2b4366737",
+          "path": "mt/envi/model.envi.intgemm.alphas.bin"
+        }
+      ]
+    },
+    {
+      "id": "en",
+      "kind": "language",
+      "langs": [
+        "en"
+      ],
+      "requires": [
+        "core",
+        "speech-multi"
+      ],
+      "license": "",
+      "files": []
+    },
+    {
+      "id": "zh",
+      "kind": "language",
+      "langs": [
+        "zh"
+      ],
+      "requires": [
+        "core",
+        "speech-multi"
+      ],
+      "license": "MPL-2.0 (Bergamot)",
+      "files": [
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/17ff5d42-6d4c-42f8-ad3c-b8042b5bafa7.spm",
+          "size": 1359697,
+          "sha256": "dff594318ab7d8b7b60b844ab98ebe6b932ae8045fab15235404c787715965b3",
+          "path": "mt/zhen/vocab.zhen.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/715efbde-c974-4696-981a-83c0c5f82ad5.bin",
+          "size": 43977787,
+          "sha256": "5cd149601802fc8a18124a1c1306144dbbedc058630c4ddb2d53aa76fa9c7c06",
+          "path": "mt/zhen/model.zhen.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/ae5f53d2-59ec-4aad-944d-999e50d6a65c.bin",
+          "size": 9219192,
+          "sha256": "8524dd4c93ffd7f0ae7be32f77a7c14fea7cdbbebe34ea6ad0ec368d5ddd8b13",
+          "path": "mt/zhen/lex.50.50.zhen.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/a7ff7d5e-e67e-406c-a34b-a7edea35b10e.bin",
+          "size": 43849787,
+          "sha256": "4e5accc141373565ddc8fa1565bceaa8d0c3482a82cab8131c719ebcc6c2157c",
+          "path": "mt/enzh/model.enzh.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/ea98c52c-58dc-45d5-af23-38f2b029d020.spm",
+          "size": 806952,
+          "sha256": "bd9b65504acc6d9726dd281f7defc2adb7c2c22d0688fe2f84697de25197c8c5",
+          "path": "mt/enzh/srcvocab.enzh.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/bddbda68-d4d2-4317-a0a1-119caa47525e.spm",
+          "size": 772004,
+          "sha256": "aded6993c36e440284d11cec3f6b8aef9c0e43188a772d80be342a713adf223d",
+          "path": "mt/enzh/trgvocab.enzh.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/da8fccc0-31df-4665-9703-96d36606e019.bin",
+          "size": 6506248,
+          "sha256": "4a5e5827788060f1d718a8132b69440929387514a045796e9b77f935db68c055",
+          "path": "mt/enzh/lex.50.50.enzh.s2t.bin"
+        }
+      ]
+    },
+    {
+      "id": "ko",
+      "kind": "language",
+      "langs": [
+        "ko"
+      ],
+      "requires": [
+        "core",
+        "speech-multi"
+      ],
+      "license": "MPL-2.0 (Bergamot)",
+      "files": [
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/bf6d1f85-351f-4934-934d-8a7b0d118270.bin",
+          "size": 43977787,
+          "sha256": "7cb30cbc0a86e242084756445268a2346136771c92b884d9b4ebb077f67d5507",
+          "path": "mt/koen/model.koen.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/66a51334-41dd-4f08-bd22-6016035d6904.bin",
+          "size": 8617516,
+          "sha256": "b26291f063ce216a74239275f0485534a38111203e59d42a2a56ba62d6eeb196",
+          "path": "mt/koen/lex.50.50.koen.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/409950da-3a7f-4a0a-bd3e-9f655d7150eb.spm",
+          "size": 1410063,
+          "sha256": "1c72b740ab793cdc3a8f16913dd6b4e806c77421077dd2d85edeb7be38418598",
+          "path": "mt/koen/vocab.koen.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/bef3bc40-bc91-4739-981d-c82a9d22fd31.spm",
+          "size": 815353,
+          "sha256": "2ece21b28dd7022d36127d17423a74dabf544787dfc1cf614f7b565f93a4a1d3",
+          "path": "mt/enko/trgvocab.enko.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/85738400-bea4-4284-ba4c-e47e465f5331.bin",
+          "size": 6449612,
+          "sha256": "96efba97d4bb93ab362e5569bea0f115184d2f68d63b67305ee663c18e32fbeb",
+          "path": "mt/enko/lex.50.50.enko.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/3d9dfbda-cd4f-445e-a69b-19e21e071385.spm",
+          "size": 791280,
+          "sha256": "8d4e3141868efd410eb86c2b60d41aa6bc6b46e4c4b2c0b85e3792493c69d802",
+          "path": "mt/enko/srcvocab.enko.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/29e88605-8576-4a8e-be94-a5ebb4a738f7.bin",
+          "size": 43849787,
+          "sha256": "ffe5ef2ce3f2e944055e35310bab186f6a70d533a0ee4394adf716a0e383afbb",
+          "path": "mt/enko/model.enko.intgemm.alphas.bin"
+        }
+      ]
+    },
+    {
+      "id": "ja",
+      "kind": "language",
+      "langs": [
+        "ja"
+      ],
+      "requires": [
+        "core",
+        "speech-multi"
+      ],
+      "license": "MPL-2.0 (Bergamot)",
+      "files": [
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/4e6b3270-8a2f-491d-b717-f99749328622.bin",
+          "size": 9348172,
+          "sha256": "525f412f0d210536c2933c78ae395fa0bf2b5ee6cc5dda61ebc2e79410ebaee4",
+          "path": "mt/jaen/lex.50.50.jaen.s2t.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/2b066368-11b5-4cee-92e8-e6156b334f80.bin",
+          "size": 43977787,
+          "sha256": "3a603e20bfe1be86071913f9e23ab5129075bc0a8490151020ac4821e4f17302",
+          "path": "mt/jaen/model.jaen.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/6f4898e3-ebaa-4a79-a1af-93a4f65b96fa.spm",
+          "size": 1443222,
+          "sha256": "5cb217758bae05877bb3f0c2f612e4e7c1e4cb03c10db11f4a47098d7ae62919",
+          "path": "mt/jaen/vocab.jaen.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/cdea5422-fe0d-4941-a653-ca090423e8f8.spm",
+          "size": 796275,
+          "sha256": "970c98d174fc01e0339fbabbf45af36a4be3f26f819ec1a5ea1189f71e091889",
+          "path": "mt/enja/srcvocab.enja.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/4e19636e-4644-4072-8a05-9ef695d4a3ae.bin",
+          "size": 43849787,
+          "sha256": "59ae659f9bb63e4f81f474fe3c03d3f4499434b5f9e779fab7c12a45f31fd562",
+          "path": "mt/enja/model.enja.intgemm.alphas.bin"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/5c1a663f-5736-4100-b681-c6737fe79cb5.spm",
+          "size": 827144,
+          "sha256": "3b3d9f8f3a034d98d0a476f1794fa79c01e4e98a967ceb6777a66ba2d03ec1e1",
+          "path": "mt/enja/trgvocab.enja.spm"
+        },
+        {
+          "url": "https://firefox-settings-attachments.cdn.mozilla.net/main-workspace/translations-models/87258444-8fac-4d3c-a175-9275e9d10ffa.bin",
+          "size": 4128360,
+          "sha256": "edfb7eb47b98a2689b804ab3614c31b24f1257aa54b1154da3d85e1ae8152d9f",
+          "path": "mt/enja/lex.50.50.enja.s2t.bin"
+        }
+      ]
+    },
+    {
+      "id": "tts-supertonic",
+      "kind": "optional",
+      "langs": [
+        "vi",
+        "en",
+        "ko",
+        "ja"
+      ],
+      "requires": [],
+      "license": "OpenRAIL-M (Supertonic 3)",
+      "files": [
+        {
+          "url": "https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/sherpa-onnx-supertonic-3-tts-int8-2026-05-11.tar.bz2",
+          "size": 128774318,
+          "sha256": "82fa96f91c4ef8abaae3a14a3f4153facf88bed821d1f7331cec2700f432c427",
+          "path": "tts",
+          "extract": "tar.bz2"
+        }
+      ]
+    }
+  ]
+}

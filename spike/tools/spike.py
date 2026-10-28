@@ -199,29 +199,9 @@ def cmd_models(args: argparse.Namespace) -> None:
         shutil.rmtree(MODELS / "_downloads", ignore_errors=True)
 
 
-BERGAMOT_DIR = SPIKE / "app" / "src" / "main" / "cpp" / "bergamot"
-# (repo relative to BERGAMOT_DIR, submodules needed for the Android arm64 build, submodules to skip)
-BERGAMOT_SUBMODULES = [
-    (".", ["3rd_party/marian-dev", "3rd_party/ssplit-cpp"], ["bergamot-translator-tests", "3rd_party/pybind11"]),
-    ("3rd_party/marian-dev", ["src/3rd_party/sentencepiece", "src/3rd_party/ruy", "src/3rd_party/simd_utils"],
-     ["examples", "regression-tests", "src/3rd_party/nccl", "src/3rd_party/fbgemm", "src/3rd_party/intgemm",
-      "src/3rd_party/simple-websocket-server", "src/3rd_party/onnxjs"]),
-    ("3rd_party/marian-dev/src/3rd_party/ruy", ["third_party/cpuinfo"], ["third_party/googletest"]),
-]
-
-
 def cmd_bergamot(_: argparse.Namespace) -> None:
-    """Initialise only the Bergamot submodules the Android build needs (the full tree is several GB)."""
-    def git(*args: str, cwd: Path) -> None:
-        subprocess.run(["git", *args], cwd=cwd, check=True)
-
-    git("submodule", "update", "--init", str(BERGAMOT_DIR.relative_to(SPIKE.parent)), cwd=SPIKE.parent)
-    for repo, needed, skipped in BERGAMOT_SUBMODULES:
-        cwd = BERGAMOT_DIR / repo
-        for s in skipped:
-            git("config", f"submodule.{s}.update", "none", cwd=cwd)
-        git("submodule", "update", "--init", "--depth", "1", *needed, cwd=cwd)
-    print("  ✓ Bergamot sẵn sàng để build")
+    """The Bergamot submodule is shared with the app (third_party/); tools/deps.py initialises it."""
+    subprocess.run([sys.executable, str(SPIKE.parent / "tools" / "deps.py"), "bergamot"], check=True)
 
 
 def find_adb() -> str:

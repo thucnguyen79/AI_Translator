@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Local POM for the sherpa-onnx static-link AAR (Apache-2.0); the .aar is fetched by tools/deps.py. -->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.k2fsa.sherpa.onnx</groupId>
+  <artifactId>sherpa-onnx-android</artifactId>
+  <version>2.0.1</version>
+  <packaging>aar</packaging>
+  <licenses>
+    <license>
+      <name>Apache-2.0</name>
+      <url>https://github.com/k2-fsa/sherpa-onnx/blob/master/LICENSE</url>
+    </license>
+  </licenses>
+</project>

@@ -57,7 +57,7 @@ File ghi âm là dữ liệu giọng nói cá nhân nên **không đưa lên git
 ## Bergamot (dịch mã nguồn mở)
 
 Bergamot không có bản build Android sẵn nên app biên dịch nó từ mã nguồn. Mã nằm ở submodule
-`app/src/main/cpp/bergamot`, trỏ tới bản fork [niedev/bergamot-translator](https://github.com/niedev/bergamot-translator)
+`third_party/bergamot-translator` (dùng chung với app chính), trỏ tới bản fork [niedev/bergamot-translator](https://github.com/niedev/bergamot-translator)
 của tác giả RTranslator (đã có cấu hình build Android). Sau khi clone repo, khởi tạo đúng các phần cần cho arm64
 (bỏ qua fbgemm, nccl, bộ test… nặng vài GB):
 
@@ -66,7 +66,7 @@ python tools/spike.py bergamot
 ```
 
 Build cần NDK 28.2.13676358 và CMake 3.22.1 trong Android SDK; lần đầu biên dịch Marian mất khá lâu.
-Nếu thư mục `app/src/main/cpp/bergamot` trống, app vẫn build được nhưng chỉ dịch bằng ML Kit.
+Nếu thư mục `third_party/bergamot-translator` trống, app vẫn build được nhưng chỉ dịch bằng ML Kit.
 Tab **Mô hình** cho biết APK có thư viện Bergamot hay không.
 
 ## Tiêu chí quyết định (đề xuất)

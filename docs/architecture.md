@@ -111,52 +111,38 @@ cùng với `onnxruntime-android`.
 |---|---|
 | Ngôn ngữ / UI | Kotlin, Jetpack Compose, Material 3 |
 | Bất đồng bộ | Kotlin Coroutines + Flow |
-| DI | Hilt |
-| Lưu trữ | Room (lịch sử), DataStore (cài đặt) |
-| Tải gói | WorkManager + OkHttp (tải tiếp khi rớt mạng, kiểm SHA-256) |
-| Native | sherpa-onnx AAR; Bergamot qua JNI/NDK (CMake) |
-| Build | Gradle Kotlin DSL, version catalog; `minSdk 28` (yêu cầu của Bergamot), ABI `arm64-v8a` (+ `x86_64` cho emulator) |
-| CI | GitHub Actions: build, unit test, lint |
+| DI | Thủ công qua `AppContainer` (ít phụ thuộc build; cân nhắc Hilt khi số màn hình tăng) |
+| Lưu trữ | SharedPreferences (ngôn ngữ ghế); Room cho lịch sử ở v1 |
+| Tải gói | `PackManager`: HttpURLConnection + HTTP Range (tải tiếp), kiểm SHA-256, giải nén tar.bz2 bằng Commons Compress |
+| Native | sherpa-onnx AAR **liên kết tĩnh ONNX Runtime** (qua maven cục bộ `third_party/m2`); `onnxruntime-android` cho vibert-capu; Bergamot qua JNI/NDK (CMake) |
+| Build | Gradle Kotlin DSL, version catalog, convention plugins (`build-logic/`); `minSdk 28` (yêu cầu của Bergamot), ABI `arm64-v8a` |
+| CI | GitHub Actions: unit test + APK debug |
 
 ## 4. Cấu trúc module
 
 ```
-app/                      Điều hướng, DI, theme
+app/                      Compose UI (hội thoại, gói ngôn ngữ, thông tin), AppContainer
 core/
-  audio/                  AudioRecord, Silero VAD, quản lý focus/AEC
-  asr/                    interface SpeechRecognizer + SherpaOnnxRecognizer
-  translate/              interface Translator + BergamotTranslator + PivotTranslator
-  tts/                    interface SpeechSynthesizer + AndroidTts + SherpaTts
-  packs/                  Manifest gói, tải, kiểm tra, giải nén, quản lý dung lượng
-  data/                   Room (Session, Turn, Translation), DataStore
-  engine/                 ConversationEngine: máy trạng thái + điều phối pipeline
-feature/
-  conversation/           Bố cục 2/3/4 ghế, bong bóng, chữ lớn, bàn phím
-  packs/                  Màn hình gói ngôn ngữ
-  history/                Lịch sử, tìm kiếm, xuất
-  settings/               Cài đặt, chẩn đoán, giấy phép
+  model/                  Lang + interface AudioInput, SpeechRecognizer, Translator, SpeechSynthesizer
+  engine/                 ConversationEngine: máy trạng thái + điều phối pipeline (unit test bằng fake)
+  speech/                 VadAudioInput, SherpaRecognizer, AsrText, ViPunctuator
+  translate/              BergamotTranslator + JNI (dịch qua tiếng Anh trong native)
+  tts/                    SystemTts, SupertonicTts, RoutingTts
+  packs/                  PackCatalog (assets/packs.json), PackManager, ModelLocator
 ```
 
-### Interface cốt lõi (phác thảo)
+Khi giao diện lớn dần (3–4 ghế, lịch sử, cài đặt) sẽ tách thêm `feature/*` và `core/data`.
+
+### Interface cốt lõi
 
 ```kotlin
-interface SpeechRecognizer {
-    val language: Lang
-    fun transcribe(audio: FloatArray, sampleRate: Int = 16_000): String
-}
-
-interface Translator {
-    fun supports(from: Lang, to: Lang): Boolean
-    suspend fun translate(text: String, from: Lang, to: Lang): String
-}
-
-interface SpeechSynthesizer {
-    suspend fun speak(text: String, lang: Lang)
-    fun stop()
-}
+interface AudioInput { suspend fun capture(shouldStop: () -> Boolean): Utterance? }
+interface SpeechRecognizer { suspend fun transcribe(utterance: Utterance, lang: Lang): String }
+interface Translator { suspend fun translate(text: String, from: Lang, to: Lang): String }
+interface SpeechSynthesizer { suspend fun speak(text: String, lang: Lang); fun stop() }
 ```
 
-`PivotTranslator` bọc một `Translator` khác: nếu không có cặp trực tiếp `from→to` thì dịch `from→en→to`.
+Dịch qua tiếng Anh nằm trong `BergamotTranslator` (dịch vụ native `pivotMultiple`).
 
 ### Máy trạng thái `ConversationEngine`
 

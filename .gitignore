@@ -11,6 +11,8 @@ captures/
 .cxx/
 *.apk
 *.aab
+# Fetched by tools/deps.py (only the POM is committed)
+*.aar
 *.ap_
 *.dex
 *.keystore
@@ -27,6 +29,8 @@ captures/
 *.bin
 *.gguf
 *.tflite
+
+*.log
 
 # Local tooling
 .claude/settings.local.json
