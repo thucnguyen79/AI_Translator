@@ -14,6 +14,8 @@ class SpikePaths(context: Context) {
     val asrModels = File(models, "asr")
     val vadModel = File(models, "vad/silero_vad.onnx")
     val bergamotModels = File(models, "bergamot")
+    val ttsModels = File(models, "tts")
+    val punctModels = File(models, "punct")
 
     val testset = File(root, "testset")
     /** Optional override of the bundled sentence set. */
@@ -23,7 +25,7 @@ class SpikePaths(context: Context) {
     val results = File(root, "results")
 
     fun ensureDirs(context: Context) {
-        listOf(asrModels, vadModel.parentFile!!, bergamotModels, audio, results).forEach { it.mkdirs() }
+        listOf(asrModels, vadModel.parentFile!!, bergamotModels, ttsModels, punctModels, audio, results).forEach { it.mkdirs() }
     }
 
     fun audioDir(lang: Lang, speaker: String) = File(audio, "${lang.code}/$speaker")

@@ -25,6 +25,8 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 kotlinx-coroutines-play-services = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-play-services", version.ref = "coroutines" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version.ref = "mlkitTranslate" }
 junit4 = { group = "junit", name = "junit", version = "4.13.2" }
+# Java API for the Vietnamese punctuation model (sherpa-onnx links its own ONNX Runtime statically)
+onnxruntime-android = { group = "com.microsoft.onnxruntime", name = "onnxruntime-android", version = "1.28.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

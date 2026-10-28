@@ -4,6 +4,7 @@ import android.content.Context
 import com.k2fsa.sherpa.onnx.WaveReader
 import io.github.thucnguyen79.aitranslator.spike.asr.AsrModel
 import io.github.thucnguyen79.aitranslator.spike.asr.SherpaAsr
+import io.github.thucnguyen79.aitranslator.spike.asr.ViPunctuator
 import io.github.thucnguyen79.aitranslator.spike.audio.SAMPLE_RATE
 import io.github.thucnguyen79.aitranslator.spike.core.ChrF
 import io.github.thucnguyen79.aitranslator.spike.core.DeviceInfo
@@ -40,14 +41,17 @@ object AsrBench {
         val refs = Sentences.byId(context, paths)
 
         val pssBefore = DeviceInfo.pssMb()
+        // Measure what the conversation uses: Vietnamese text goes through the punctuation model when installed.
+        val punctuator = if (lang == Lang.VI && ViPunctuator.isPresent(paths)) ViPunctuator(ViPunctuator.folder(paths)) else null
         SherpaAsr(model, paths, threads).use { asr ->
+            asr.punctuator = punctuator
             val pssAfter = DeviceInfo.pssMb()
             // Warm-up run so the first measured file does not pay one-off initialisation costs.
             asr.transcribe(WaveReader.readWave(files.first().absolutePath).samples, lang)
 
             val items = JSONArray()
             var charErr = 0; var charRef = 0; var wordErr = 0; var wordRef = 0
-            val decodeMs = ArrayList<Double>(); val rtfs = ArrayList<Double>()
+            val decodeMs = ArrayList<Double>(); val rtfs = ArrayList<Double>(); val postMs = ArrayList<Double>()
             files.forEachIndexed { i, f ->
                 val wave = WaveReader.readWave(f.absolutePath)
                 val ref = refs[f.nameWithoutExtension]?.get(lang).orEmpty()
@@ -62,11 +66,11 @@ object AsrBench {
                 val (ce, cr) = Metrics.charErrors(ref, hyp)
                 val (we, wr) = Metrics.wordErrors(ref, hyp)
                 if (ref.isNotEmpty()) { charErr += ce; charRef += cr; wordErr += we; wordRef += wr }
-                decodeMs += ms; rtfs += ms / 1000.0 / sec
+                decodeMs += ms; rtfs += ms / 1000.0 / sec; postMs += asr.lastPostMs.toDouble()
                 items.put(
                     JSONObject().put("file", f.relativeTo(paths.audio).path).put("speaker", f.parentFile?.name)
                         .put("id", f.nameWithoutExtension).put("ref", ref).put("hyp", hyp)
-                        .put("audioSec", sec).put("decodeMs", ms).put("rtf", ms / 1000.0 / sec)
+                        .put("audioSec", sec).put("decodeMs", ms).put("postMs", asr.lastPostMs).put("rtf", ms / 1000.0 / sec)
                         .put("cer", if (cr > 0) ce.toDouble() / cr else JSONObject.NULL),
                 )
                 progress(i + 1, files.size, "${f.nameWithoutExtension}: $hyp")
@@ -81,10 +85,13 @@ object AsrBench {
                 .put("decodeMsMean", Metrics.mean(decodeMs))
                 .put("decodeMsP95", Metrics.percentile(decodeMs, 95.0))
                 .put("rtfMean", Metrics.mean(rtfs))
+                .put("postMsMean", Metrics.mean(postMs))
+            punctuator?.close()
             val json = JSONObject()
                 .put("type", "asr")
                 .put("device", DeviceInfo.json(context))
                 .put("model", model.id).put("modelDir", model.dir)
+                .put("punctuation", if (punctuator != null) "vibert-capu" else "rules")
                 .put("lang", lang.code).put("threads", threads)
                 .put("loadMs", asr.loadMs).put("modelPssMb", pssAfter - pssBefore)
                 .put("summary", summary).put("items", items)
@@ -95,6 +102,7 @@ object AsrBench {
                 if (lang.spaced) append(" · WER ${(wer * 100).f(1)}%")
                 append("\nGiải mã TB ${Metrics.mean(decodeMs).f(0)} ms · p95 ${Metrics.percentile(decodeMs, 95.0).f(0)} ms")
                 append(" · RTF ${Metrics.mean(rtfs).f(3)}\n")
+                append("Dấu câu: ${if (punctuator != null) "vibert-capu" else "quy tắc"} · TB ${Metrics.mean(postMs).f(0)} ms\n")
                 append("Nạp mô hình ${asr.loadMs} ms · RAM +${(pssAfter - pssBefore).f(0)} MB")
             }
             return BenchResult(text, file)

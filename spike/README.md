@@ -26,7 +26,8 @@ trên máy để thay bộ câu mà không cần build lại.
 | ASR zh/en/ja/ko | `sensevoice-2024`, `sensevoice-2025` (~163 MB, dùng chung 4 tiếng), `whisper-*` | sherpa-onnx |
 | VAD | Silero VAD | tự dừng sau 0,6 s im lặng |
 | Dịch | **Bergamot** (Mozilla, MPL-2.0, qua tiếng Anh) · **ML Kit** (Google, mã đóng — chỉ làm mốc) | Bergamot cần bước bật thêm, xem dưới |
-| TTS | Android `TextToSpeech` của máy | sherpa-onnx TTS để sau nếu thiếu giọng offline |
+| Dấu câu vi | vibert-capu (int8 110 MB, CC-BY-SA-4.0) qua ONNX Runtime · quy tắc dự phòng | mô hình zipformer-vi chỉ ra CHỮ IN HOA |
+| TTS | Android `TextToSpeech` của máy · Supertonic 3 (sherpa-onnx) khi máy thiếu giọng offline | |
 
 ## Cách chạy
 
@@ -36,7 +37,7 @@ Yêu cầu: JDK 17+, Android SDK (compileSdk 37), Python 3.10+, `adb`, điện t
 cd spike
 python tools/spike.py deps                                   # sherpa-onnx AAR (kiểm SHA-256)
 python tools/spike.py bergamot                               # mã nguồn Bergamot (submodule)
-python tools/spike.py models --vad --asr vi-zipformer-30m sensevoice-2024 --mt vi zh ko ja
+python tools/spike.py models --vad --asr vi-zipformer-30m sensevoice-2024 --mt vi zh ko ja --punct --tts
 ./gradlew installDebug                                       # hoặc gradlew.bat trên Windows
 python tools/spike.py push                                   # đẩy models/ lên máy (tự mở app lần đầu)
 ```
@@ -153,3 +154,35 @@ dù ASR nhận đúng. Kiểm chứng trên máy với cùng câu, chỉ khác c
 chữ thường + viết hoa đầu câu và tên riêng, "?" khi có từ để hỏi (không, chưa, à, gì, đâu, bao nhiêu…), "." còn lại,
 dấu phẩy sau lời chào/xin lỗi ở đầu câu. Đây là quy tắc tạm cho spike; sản phẩm nên dùng mô hình khôi phục dấu câu
 tiếng Việt (cần tìm/đánh giá ở bước sau).
+
+### Đợt 2 — 2026-10-28 · cùng máy
+
+**Dấu câu & chữ hoa tiếng Việt bằng mô hình** — [vibert-capu](https://huggingface.co/welcomyou/vibert-capu-onnx)
+(BERT tiếng Việt, int8 110 MB, CC-BY-SA-4.0), chạy bằng ONNX Runtime
+([ViPunctuator.kt](app/src/main/java/io/github/thucnguyen79/aitranslator/spike/asr/ViPunctuator.kt)):
+
+- Trên 8 câu đã ghi âm: cả 8 câu đúng chữ hoa và dấu câu ("Xin lỗi, bạn có nói được tiếng Anh không?",
+  "Tôi đến từ Việt Nam."); **~31 ms/câu**, nạp ~1 s, RAM ~+150 MB.
+- Thử trên máy tính với câu dài hơn: "Tôi muốn đi Hà Nội, sau đó đi Đà Nẵng rồi về Sài Gòn.",
+  "Cái này giá bao nhiêu? Có thể giảm giá một chút không?". Lỗi còn gặp: "Sao Bà không hiểu? Tôi nói tiếng Việt à?"
+  (viết hoa và tách câu sai), "Chào bạn, Hôm nay…" (viết hoa sau dấu phẩy).
+- Mô hình bỏ qua câu < 3 từ → dùng quy tắc. Tab Hội thoại có công tắc để so sánh mô hình và quy tắc.
+- Không có mô hình nào sẵn trong sherpa-onnx cho tiếng Việt; các mô hình đa ngôn ngữ khác hoặc không có tiếng Việt,
+  hoặc > 200 MB, hoặc không khôi phục chữ hoa.
+- Kỹ thuật: ONNX Runtime đánh phiên bản symbol (`OrtGetApiBase@VERS_1.28.2`), nên không dùng chung được
+  `libonnxruntime.so` của sherpa-onnx với `onnxruntime-android` → chuyển sang bản AAR sherpa-onnx liên kết tĩnh.
+
+**TTS dự phòng: Supertonic 3** (Supertone, OpenRAIL-M, 1 mô hình ~130 MB cho 31 ngôn ngữ gồm vi/en/ko/ja, **không có zh**):
+
+| Engine | vi | en | zh | ko | ja |
+|---|---|---|---|---|---|
+| Google TTS (máy) | ✓ 683 ms | ✓ 805 ms | ✓ 719 ms | ✓ 762 ms | ✗ không có giọng offline |
+| Supertonic 3 | ✓ 1802 ms | ✓ 980 ms | — | ✓ 1389 ms | ✓ 1261 ms |
+
+(thời gian tới khi bắt đầu phát, lần gọi đầu; Supertonic tổng hợp cả câu rồi mới phát)
+
+- Lấp được chỗ trống tiếng Nhật; Google TTS (có giọng offline) + Supertonic phủ đủ 5 ngôn ngữ offline trên máy này.
+- App chọn: giọng offline của Android → Supertonic → giọng cần mạng (kèm cảnh báo ở tab Hội thoại).
+- Chậm hơn Google TTS ~1 s; có thể giảm `numSteps` (đang 5) nếu cần nhanh hơn — cần nghe thử chất lượng.
+- Kỹ thuật: callback âm thanh của sherpa-onnx phải là một class (JNI tìm `invoke([F)Ljava/lang/Integer;`),
+  vì Kotlin 2 biên dịch lambda bằng invokedynamic.

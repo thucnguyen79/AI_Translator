@@ -59,6 +59,12 @@ class SherpaAsr(val model: AsrModel, paths: SpikePaths, val numThreads: Int) : A
     private val recognizer: OfflineRecognizer
     val loadMs: Long
 
+    /** Optional Vietnamese punctuation model applied after decoding. */
+    var punctuator: ViPunctuator? = null
+    /** Time spent restoring case/punctuation in the last [transcribe] call. */
+    var lastPostMs = 0L
+        private set
+
     init {
         require(folder.isDirectory) { "Chưa có mô hình: ${folder.path}" }
         val t0 = System.nanoTime()
@@ -76,7 +82,12 @@ class SherpaAsr(val model: AsrModel, paths: SpikePaths, val numThreads: Int) : A
         try {
             stream.acceptWaveform(samples, SAMPLE_RATE)
             recognizer.decode(stream)
-            return AsrText.restore(clean(recognizer.getResult(stream).text), lang)
+            val raw = clean(recognizer.getResult(stream).text)
+            val t0 = System.nanoTime()
+            val p = punctuator
+            val text = AsrText.restore(raw, lang, p?.let { { s: String -> it.restore(s) } })
+            lastPostMs = (System.nanoTime() - t0) / 1_000_000
+            return text
         } finally {
             stream.release()
         }

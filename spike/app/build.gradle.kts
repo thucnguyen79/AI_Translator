@@ -7,8 +7,9 @@ plugins {
 }
 
 // sherpa-onnx (Apache-2.0) is not on Maven Central: `python tools/spike.py deps` downloads the
-// official AAR from GitHub Releases into app/libs (git-ignored) and checks its SHA-256.
-val sherpaAar = file("libs/sherpa-onnx-${libs.versions.sherpaOnnx.get()}.aar")
+// official AAR from GitHub Releases into app/libs (git-ignored) and checks its SHA-256. The static-link
+// build embeds ONNX Runtime so it does not clash with onnxruntime-android's libonnxruntime.so.
+val sherpaAar = file("libs/sherpa-onnx-static-link-onnxruntime-${libs.versions.sherpaOnnx.get()}.aar")
 
 // Bergamot (Mozilla, MPL-2.0) is built from source only when its sources are present in
 // src/main/cpp/bergamot (see spike/README.md). Without it the app falls back to ML Kit for MT.
@@ -83,6 +84,12 @@ android {
     lint {
         abortOnError = false
     }
+
+    packaging {
+        // arm64 only (see abiFilters); the static-link sherpa AAR still carries an x86 libonnxruntime.so
+        // that would clash with onnxruntime-android's while merging.
+        jniLibs.excludes += listOf("lib/x86/**", "lib/x86_64/**", "lib/armeabi-v7a/**")
+    }
 }
 
 tasks.withType<KotlinJvmCompile>().configureEach {
@@ -110,6 +117,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     // Closed-source baseline for MT quality comparison only; not planned for the product.
     implementation(libs.mlkit.translate)
+    implementation(libs.onnxruntime.android)
 
     testImplementation(libs.junit4)
 }

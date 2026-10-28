@@ -15,11 +15,14 @@ import io.github.thucnguyen79.aitranslator.spike.SpikeApp
 import io.github.thucnguyen79.aitranslator.spike.core.DeviceInfo
 import io.github.thucnguyen79.aitranslator.spike.core.Lang
 import io.github.thucnguyen79.aitranslator.spike.core.Sentences
+import io.github.thucnguyen79.aitranslator.spike.tts.SherpaTts
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
 
 private object TtsUi {
     val probe = TaskState()
+    val supertonic = TaskState()
 }
 
 @Composable
@@ -63,6 +66,45 @@ fun TtsScreen() {
             if (TtsUi.probe.running) OutlinedButton(onClick = { TtsUi.probe.cancel(); Engines.tts.stop() }) { Text("Huỷ") }
         }
         TaskView(TtsUi.probe)
+    }
+
+    Section("Supertonic 3 (sherpa-onnx, dự phòng offline)") {
+        if (!SherpaTts.isPresent(paths)) {
+            Mono("Chưa có mô hình: python tools/spike.py models --tts rồi push.")
+        } else {
+            Mono("1 mô hình ~130 MB cho vi/en/ko/ja (không có zh). Đọc thử 1 câu mỗi ngôn ngữ.")
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(enabled = !TtsUi.supertonic.running, onClick = {
+                    TtsUi.supertonic.start {
+                        val sample = Sentences.all(context, paths).first()
+                        status = "Đang nạp mô hình…"
+                        val engine = Engines.lock.withLock { Engines.supertonic() }
+                        val rows = JSONArray()
+                        val lines = StringBuilder("Nạp ${engine.loadMs} ms\n")
+                        val langs = Lang.entries.filter { it in SherpaTts.LANGS }
+                        langs.forEachIndexed { i, lang ->
+                            status = "Đang đọc ${lang.label}…"
+                            val t0 = System.nanoTime()
+                            val startMs = Engines.lock.withLock { engine.speak(sample[lang], lang) }
+                            val totalMs = (System.nanoTime() - t0) / 1_000_000
+                            rows.put(
+                                JSONObject().put("lang", lang.code).put("offlineVoices", JSONArray(listOf("supertonic")))
+                                    .put("timeToAudioMs", startMs).put("totalMs", totalMs),
+                            )
+                            lines.append("✓ ${lang.code}: bắt đầu phát sau $startMs ms · đọc xong sau $totalMs ms\n")
+                            progress = (i + 1) / langs.size.toFloat()
+                        }
+                        val json = JSONObject().put("type", "tts").put("device", DeviceInfo.json(context))
+                            .put("engine", "supertonic-3").put("loadMs", engine.loadMs).put("langs", rows)
+                        val file = DeviceInfo.writeResult(paths.results, "tts-supertonic", json)
+                        status = ""
+                        result = lines.toString() + "→ ${file.name}"
+                    }
+                }) { Text("Thử Supertonic") }
+                if (TtsUi.supertonic.running) OutlinedButton(onClick = { TtsUi.supertonic.cancel(); Engines.stopSpeaking() }) { Text("Huỷ") }
+            }
+            TaskView(TtsUi.supertonic)
+        }
     }
 
     Section("Thiếu giọng offline?") {

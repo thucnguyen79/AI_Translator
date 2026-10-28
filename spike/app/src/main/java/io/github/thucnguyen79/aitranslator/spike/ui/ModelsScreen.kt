@@ -11,11 +11,13 @@ import androidx.compose.ui.platform.LocalContext
 import io.github.thucnguyen79.aitranslator.spike.Engines
 import io.github.thucnguyen79.aitranslator.spike.SpikeApp
 import io.github.thucnguyen79.aitranslator.spike.asr.AsrCatalog
+import io.github.thucnguyen79.aitranslator.spike.asr.ViPunctuator
 import io.github.thucnguyen79.aitranslator.spike.bench.AsrBench
 import io.github.thucnguyen79.aitranslator.spike.core.DeviceInfo
 import io.github.thucnguyen79.aitranslator.spike.core.Lang
 import io.github.thucnguyen79.aitranslator.spike.core.Sentences
 import io.github.thucnguyen79.aitranslator.spike.mt.BergamotNative
+import io.github.thucnguyen79.aitranslator.spike.tts.SherpaTts
 
 @Composable
 fun ModelsScreen() {
@@ -32,7 +34,8 @@ fun ModelsScreen() {
         Mono(
             AsrCatalog.models.joinToString("\n") { m ->
                 "${if (m.isPresent(paths)) "✓" else "✗"} ${m.id} [${m.langs.joinToString(",") { it.code }}]"
-            } + "\n${if (paths.vadModel.isFile) "✓" else "✗"} Silero VAD",
+            } + "\n${if (paths.vadModel.isFile) "✓" else "✗"} Silero VAD" +
+                "\n${if (ViPunctuator.isPresent(paths)) "✓" else "✗"} vibert-capu (dấu câu tiếng Việt)",
         )
     }
     Section("Dịch (models/bergamot)") {
@@ -41,6 +44,9 @@ fun ModelsScreen() {
             "Thư viện Bergamot trong APK: ${if (BergamotNative.isLoaded) "có" else "không (chỉ ML Kit)"}\n" +
                 "Cặp đã có: ${dirs.ifEmpty { listOf("—") }.joinToString(" ")}",
         )
+    }
+    Section("Đọc bản dịch (models/tts)") {
+        Mono("${if (SherpaTts.isPresent(paths)) "✓" else "✗"} Supertonic 3 [vi,en,ko,ja]")
     }
     Section("Bộ câu thử & ghi âm") {
         val n = Sentences.all(context, paths).size

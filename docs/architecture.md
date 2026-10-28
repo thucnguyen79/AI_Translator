@@ -96,9 +96,16 @@ Các phương án so sánh ở Giai đoạn 0:
 | Thứ tự | Giải pháp | Ghi chú |
 |---|---|---|
 | 1 | **Android `TextToSpeech`** của hệ thống | 0 MB thêm, giọng tự nhiên. Kiểm tra lúc chạy giọng offline có sẵn không (`isLanguageAvailable`, `Voice.isNetworkConnectionRequired`) và hướng dẫn người dùng tải |
-| 2 | **sherpa-onnx TTS** (dự phòng khi máy thiếu giọng) | vi: Piper `vais1000` (CC-BY-4.0) · zh/en: `melo-tts-zh_en` (MIT) · en/ja/zh: Kokoro (Apache-2.0) · ko: `mimic3 kss` (dữ liệu **CC BY-NC-SA** — chấp nhận được vì app miễn phí, phải ghi nguồn) |
+| 2 | **Supertonic 3 qua sherpa-onnx** (dự phòng khi máy thiếu giọng offline) | 1 mô hình int8 ~130 MB cho vi/en/ko/ja (không có zh), OpenRAIL-M. Đã chạy trên máy thật ở spike: bắt đầu phát sau 1,0–1,8 s |
 
-### 3.4 Nền tảng ứng dụng
+### 3.4 Khôi phục dấu câu & chữ hoa tiếng Việt
+
+Mô hình ASR tiếng Việt chỉ ra CHỮ IN HOA không dấu câu, làm hỏng bản dịch ("XIN CHÀO" → "HANDSELEN").
+Dùng **vibert-capu** (BERT tiếng Việt, int8 110 MB, CC-BY-SA-4.0 — phải ghi nguồn) qua ONNX Runtime: ~31 ms/câu trên
+máy thật; quy tắc đơn giản làm dự phòng cho câu < 3 từ. Vì vậy app dùng bản sherpa-onnx **liên kết tĩnh ONNX Runtime**
+cùng với `onnxruntime-android`.
+
+### 3.5 Nền tảng ứng dụng
 
 | Thành phần | Lựa chọn |
 |---|---|
@@ -164,12 +171,13 @@ Idle ──nhấn mic ghế i──▶ Listening(i) ──VAD hết câu──�
 | Gói | Thành phần | Ước tính |
 |---|---|---|
 | core (luôn có) | Silero VAD | ~2 MB |
-| vi | ASR zipformer-vi-30M + MT en↔vi (+ TTS vi dự phòng, tuỳ chọn) | ~80 MB (+63 MB TTS) |
+| vi | ASR zipformer-vi-30M + dấu câu vibert-capu + MT en↔vi | ~190 MB |
+| tts-supertonic (tuỳ chọn) | TTS dự phòng vi/en/ko/ja khi máy thiếu giọng offline | ~130 MB |
 | asr-sensevoice (dùng chung) | ASR zh/en/ja/ko | ~163 MB tải / ~237 MB giải nén |
 | en | (ASR dùng SenseVoice) | ~0 MB thêm |
 | zh / ja / ko | MT en↔X (2 chiều) | ~90–100 MB mỗi ngôn ngữ |
 
-Tổng cho đủ 5 ngôn ngữ ≈ **550 MB** (chưa tính TTS dự phòng) — sẽ cập nhật sau spike.
+Tổng cho đủ 5 ngôn ngữ ≈ **660 MB** (chưa tính TTS dự phòng) — theo số đo spike.
 
 **Manifest gói** (`packs.json`, phát hành kèm mỗi bản app hoặc trên GitHub Releases):
 

@@ -28,9 +28,19 @@ object AsrText {
     private val viOpeners = listOf("xin lỗi", "xin chào", "dạ", "vâng", "này") +
         listOf("bạn", "anh", "chị", "em", "ông", "bà", "cô", "chú").map { "chào $it" }
 
-    fun restore(text: String, lang: Lang): String {
+    /**
+     * [punctuate] is an optional model (Vietnamese only, see ViPunctuator) that returns null when it does
+     * not handle the input; the rules below are the fallback.
+     */
+    fun restore(text: String, lang: Lang, punctuate: ((String) -> String?)? = null): String {
         var t = text.trim().replace(Regex("\\s+"), " ")
         if (t.isEmpty() || !isAllCaps(t)) return t
+        if (lang == Lang.VI && punctuate != null) {
+            punctuate(t)?.let { m ->
+                val s = m.replaceFirstChar { it.titlecase(lang.locale) }
+                return if (s.last().isLetterOrDigit()) s + (if (isViQuestion(s)) "?" else ".") else s
+            }
+        }
         t = t.lowercase(lang.locale)
         if (lang == Lang.VI) {
             for (name in viProperNouns) t = t.replace(word(name), name)

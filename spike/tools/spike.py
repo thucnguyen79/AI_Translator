@@ -32,7 +32,11 @@ PACKAGE = "io.github.thucnguyen79.aitranslator.spike"
 DEVICE_ROOT = f"/sdcard/Android/data/{PACKAGE}/files"
 
 SHERPA_VERSION = "2.0.1"
-SHERPA_AAR_SHA256 = "a8d09d1d32f3eb8520482c6d3d43fae674681c5b050385967c70a3c2c9bf0ee7"
+# The static-link build embeds ONNX Runtime, so the app can use onnxruntime-android's own libonnxruntime.so
+# for other models: ORT versions its symbols (OrtGetApiBase@VERS_1.28.2 vs @VERS_1.28.0), so two builds
+# cannot share one .so.
+SHERPA_AAR = f"sherpa-onnx-static-link-onnxruntime-{SHERPA_VERSION}.aar"
+SHERPA_AAR_SHA256 = "07e042d97f3a6bd5b7fe74d4eef0513dc01a714b16c15a903250095aba43a575"
 SHERPA_RELEASES = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
 
 # id -> archive name in https://github.com/k2-fsa/sherpa-onnx/releases/tag/asr-models (must match AsrCatalog)
@@ -86,8 +90,7 @@ def download(url: str, dest: Path, expected_sha256: str | None = None) -> Path:
 
 
 def cmd_deps(_: argparse.Namespace) -> None:
-    aar = SPIKE / "app" / "libs" / f"sherpa-onnx-{SHERPA_VERSION}.aar"
-    download(f"{SHERPA_RELEASES}/v{SHERPA_VERSION}/sherpa-onnx-{SHERPA_VERSION}.aar", aar, SHERPA_AAR_SHA256)
+    download(f"{SHERPA_RELEASES}/v{SHERPA_VERSION}/{SHERPA_AAR}", SPIKE / "app" / "libs" / SHERPA_AAR, SHERPA_AAR_SHA256)
 
 
 def fetch_asr(model_id: str) -> None:
@@ -110,6 +113,37 @@ def fetch_asr(model_id: str) -> None:
     for f in list(target.glob("*.onnx")):
         if ".int8." not in f.name and (target / f.name.replace(".onnx", ".int8.onnx")).exists():
             f.unlink()
+
+
+TTS_SUPERTONIC = "sherpa-onnx-supertonic-3-tts-int8-2026-05-11"
+
+
+def fetch_tts() -> None:
+    target = MODELS / "tts" / TTS_SUPERTONIC
+    if target.is_dir():
+        print(f"  ✓ models/tts/{TTS_SUPERTONIC}")
+        return
+    archive = download(f"{SHERPA_RELEASES}/tts-models/{TTS_SUPERTONIC}.tar.bz2", MODELS / "_downloads" / f"{TTS_SUPERTONIC}.tar.bz2")
+    print(f"  ⇲ giải nén {archive.name}")
+    with tarfile.open(archive, "r:bz2") as tar:
+        try:
+            tar.extractall(MODELS / "tts", filter="data")
+        except TypeError:
+            tar.extractall(MODELS / "tts")
+
+
+# Vietnamese punctuation + case restoration (dragonSwing/vibert-capu, CC-BY-SA-4.0; ONNX by welcomyou)
+PUNCT_REPO = "https://huggingface.co/welcomyou/vibert-capu-onnx/resolve/main"
+PUNCT_FILES = {  # published path -> (local name, sha256)
+    "vibert-capu.int8.onnx": ("vibert-capu.int8.onnx", "67278b23502bbd744538e2bd9a6748b61cce171cfba6c671c2e2a46f892166fa"),
+    "vocab.txt": ("vocab.txt", "b32ccb4ca8bee5eda7a0f55f7adebaa515be742c9f765151ffefcd29fcb542a1"),
+    "vocabulary/labels.txt": ("labels.txt", "a31075cfa185b5d24c3b65c009ad0740636b286090f78419eaba2d34202c2b45"),
+}
+
+
+def fetch_punct() -> None:
+    for remote, (name, digest) in PUNCT_FILES.items():
+        download(f"{PUNCT_REPO}/{remote}", MODELS / "punct" / "vibert-capu" / name, digest)
 
 
 def fetch_vad() -> None:
@@ -155,6 +189,10 @@ def cmd_models(args: argparse.Namespace) -> None:
         fetch_asr(m)
     if args.vad:
         fetch_vad()
+    if args.tts:
+        fetch_tts()
+    if args.punct:
+        fetch_punct()
     if args.mt:
         fetch_bergamot(args.mt)
     if args.clean:
@@ -237,7 +275,7 @@ def cmd_push(args: argparse.Namespace) -> None:
                 break
         else:
             sys.exit("App chưa tạo thư mục dữ liệu: cài app (gradlew installDebug) và mở nó một lần")
-    for sub in ("asr", "vad", "bergamot"):
+    for sub in ("asr", "vad", "bergamot", "tts", "punct"):
         src = MODELS / sub
         if src.is_dir():
             push_tree(src, f"{DEVICE_ROOT}/models/{sub}")
@@ -295,12 +333,18 @@ def cmd_report(_: argparse.Namespace) -> None:
                 print(f"| {device(d)} | {d['engine']} | {x['from']}→{x['to']} | {'có' if x['pivot'] else ''} "
                       f"| {s['chrF']:.1f} | {'' if sb is None else f'{sb:.1f}'} | {s['msMean']:.0f} | {s['msP95']:.0f} |")
     if tts:
-        print("\n### TTS (Android)\n")
-        print("| Máy | Engine | " + " | ".join(l["lang"] for l in tts[0]["langs"]) + " |")
-        print("|---|---|" + "---|" * len(tts[0]["langs"]))
+        print("\n### TTS\n")
+        codes = ["vi", "en", "zh", "ko", "ja"]
+        print("| Máy | Engine | " + " | ".join(codes) + " |")
+        print("|---|---|" + "---|" * len(codes))
         for d in tts:
+            by_lang = {l["lang"]: l for l in d["langs"]}
             cells = []
-            for l in d["langs"]:
+            for c in codes:
+                l = by_lang.get(c)
+                if l is None:
+                    cells.append("—")
+                    continue
                 ok = "✓" if l["offlineVoices"] else "✗"
                 cells.append(f"{ok} {l['timeToAudioMs']} ms" if l["timeToAudioMs"] is not None else ok)
             print(f"| {device(d)} | {d['engine']} | " + " | ".join(cells) + " |")
@@ -328,6 +372,8 @@ def main() -> None:
     m = sub.add_parser("models", help="tải mô hình về spike/models")
     m.add_argument("--asr", nargs="*", metavar="ID", help=", ".join(ASR_MODELS))
     m.add_argument("--vad", action="store_true", help="Silero VAD")
+    m.add_argument("--tts", action="store_true", help="Supertonic 3 TTS (vi/en/ko/ja, ~130 MB)")
+    m.add_argument("--punct", action="store_true", help="vibert-capu: dấu câu + chữ hoa tiếng Việt (~110 MB)")
     m.add_argument("--mt", nargs="*", metavar="LANG", help="Bergamot, vd: vi zh ko ja (cả 2 chiều với en)")
     m.add_argument("--clean", action="store_true", help="xoá file nén sau khi giải nén")
     m.set_defaults(fn=cmd_models)
