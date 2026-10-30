@@ -75,7 +75,7 @@ Trong mục **"Thiết lập ứng dụng" (Set up your app)** — điền lần
 | Ứng dụng chính phủ / tài chính / sức khoẻ | Không |
 | **Quyền dịch vụ chạy nền (Foreground service)** | Khai báo loại **Data sync** (`FOREGROUND_SERVICE_DATA_SYNC`): "tải gói ngôn ngữ do người dùng bấm tải, tiếp tục khi rời app, có thông báo tiến độ". Google yêu cầu **video ngắn** (quay màn hình: bấm Tải gói → về màn hình chính → thông báo tiến độ chạy) — tải lên YouTube (chế độ không công khai) và dán link |
 
-**Trang giới thiệu trên Store (Main store listing)**:
+**Trang giới thiệu trên Store (Main store listing)** — nội dung soạn sẵn (vi + en), icon và ảnh bìa ở thư mục [store/](../store/listing.md):
 
 | Thành phần | Yêu cầu |
 |---|---|

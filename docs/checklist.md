@@ -115,7 +115,7 @@
 - [x] F7.2 Bộ cụm từ du lịch: 100 câu × 5 thứ tiếng, 8 chủ đề, nút "📖 Câu mẫu" mỗi nửa (quay về đúng người), dùng bản dịch soạn sẵn, không cần gói ngôn ngữ — thử trên máy ✓ (cả 2 nửa, cuộn ở nửa xoay đúng chiều); 👤 người bản ngữ nên rà câu zh/ko/ja
 - [x] F9.1 Tự lưu phiên (chỉ chữ, JSON trong bộ nhớ riêng của app) · F9.2 xem & tìm (cả trong bản dịch) · F9.4 chia sẻ dạng chữ song ngữ · F9.5 chế độ riêng tư — tab Lịch sử — thử trên máy ✓ (tự lưu, tìm trong bản dịch, mở phiên, bảng chia sẻ, xoá); chế độ riêng tư chưa thử
 - [x] F10.2 Cỡ chữ (4 mức, nhân thêm trên cỡ chữ của máy) & giao diện Theo máy/Sáng/Tối (biểu tượng thanh trạng thái đổi màu theo) — thử trên máy ✓
-- [ ] Phát hành Google Play 🟡 — [hướng dẫn từng bước](release.md); đã kiểm tra: AAB 35 MB, targetSdk 36, thư viện native căn trang 16 KB ✓, chính sách quyền riêng tư có link công khai. 👤 Còn: tài khoản Play Console (25 USD), khoá ký, điền thông tin Store, video khai báo dịch vụ nền, ảnh chụp/icon, kiểm thử kín ≥ 12 người × 14 ngày (tài khoản cá nhân)
+- [ ] Phát hành Google Play 🟡 — [hướng dẫn từng bước](release.md); đã kiểm tra: AAB 35 MB, targetSdk 36, thư viện native căn trang 16 KB ✓, chính sách quyền riêng tư có link công khai. Đã có trong `store/`: icon 512, ảnh bìa 1024×500, mô tả Store vi + en; ảnh chụp màn hình chờ cắm máy. 👤 Còn: tài khoản Play Console (25 USD), khoá ký, video khai báo dịch vụ nền, kiểm thử kín ≥ 12 người × 14 ngày (tài khoản cá nhân)
 
 ## Lỗi & tồn đọng kỹ thuật
 
@@ -188,3 +188,4 @@
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
 | 2026-10-28 | `79defb1` | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
 | 2026-10-30 | `3340d64` | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
+| 2026-10-30 | _(commit này)_ | Tài sản Google Play: icon 512, ảnh bìa 1024×500, mô tả vi + en (store/) |
