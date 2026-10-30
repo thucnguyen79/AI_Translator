@@ -1,6 +1,6 @@
 """Google Play feature graphic (1024 x 500): icon, app name, tagline and the five languages.
 
-    python store/make_feature.py [--name "AI Translator"] [--tagline "..."]
+    python store/make_feature.py [--name "Dịch Du Lịch Offline"] [--tagline "..."]
 
 Needs Pillow and an SVG renderer (resvg-py) for the icon; uses Windows fonts (Segoe UI, YaHei, Malgun, Yu Gothic).
 Re-run after renaming the app.
@@ -44,7 +44,7 @@ def icon(size: int) -> Image.Image:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--name", default="AI Translator")
+    ap.add_argument("--name", default="Dịch Du Lịch Offline")
     ap.add_argument("--tagline", default="Dịch hội thoại offline cho người du lịch")
     ap.add_argument("--note", default="Không cần mạng · Miễn phí · Không quảng cáo")
     ap.add_argument("--out", default=str(HERE / "feature-1024x500.png"))

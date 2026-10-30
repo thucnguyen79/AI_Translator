@@ -1,4 +1,4 @@
-# AI Translator
+# Dịch Du Lịch Offline (AI Translator)
 
 Ứng dụng Android **miễn phí, chạy offline** giúp 2–4 người du lịch nói các ngôn ngữ khác nhau trò chuyện
 trực tiếp qua **một điện thoại dùng chung**.

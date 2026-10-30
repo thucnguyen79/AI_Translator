@@ -11,14 +11,14 @@ Nếu đổi tên app, sửa tên ở đây, trong `app_name` (strings.xml) và 
 
 ## Tiếng Việt
 
-**Tên** (≤ 30 ký tự): AI Translator
+**Tên** (≤ 30 ký tự): Dịch Du Lịch Offline
 
 **Mô tả ngắn** (≤ 80 ký tự):
 Dịch hội thoại offline Việt–Anh–Trung–Hàn–Nhật. Miễn phí, không quảng cáo.
 
 **Mô tả đầy đủ**:
 
-AI Translator giúp hai đến bốn người nói khác ngôn ngữ trò chuyện với nhau trên cùng một chiếc điện thoại — ngay cả khi không có mạng. Thích hợp khi đi du lịch: gọi món, hỏi đường, đi taxi, nhận phòng khách sạn, mua sắm.
+Dịch Du Lịch Offline giúp hai đến bốn người nói khác ngôn ngữ trò chuyện với nhau trên cùng một chiếc điện thoại — ngay cả khi không có mạng. Thích hợp khi đi du lịch: gọi món, hỏi đường, đi taxi, nhận phòng khách sạn, mua sắm.
 
 TOÀN BỘ CHẠY TRÊN MÁY
 • Nhận dạng giọng nói, dịch và đọc bản dịch đều chạy ngay trên điện thoại, không gửi âm thanh hay văn bản lên mạng.
@@ -44,12 +44,14 @@ Dùng các mô hình và thư viện mã nguồn mở: sherpa-onnx, SenseVoice, 
 
 ## English
 
+**Name** (≤ 30 characters): Dịch Du Lịch Offline — or, for the English listing only, "Offline Travel Translator"
+
 **Short description** (≤ 80 characters):
 Offline conversation translator: Vietnamese, English, Chinese, Korean, Japanese.
 
 **Full description**:
 
-AI Translator lets two to four people who speak different languages talk on one phone — even with no connection. Made for travel: ordering food, asking the way, taking a taxi, checking in, shopping.
+Dịch Du Lịch Offline (Offline Travel Translator) lets two to four people who speak different languages talk on one phone — even with no connection. Made for travel: ordering food, asking the way, taking a taxi, checking in, shopping.
 
 EVERYTHING RUNS ON THE PHONE
 • Speech recognition, translation and reading aloud all happen on the device; audio and text never leave it.

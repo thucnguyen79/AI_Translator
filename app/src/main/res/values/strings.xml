@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- App UI (English, the default). Each half of the conversation uses its seat's language instead: see SeatStrings.kt. -->
 <resources>
-    <string name="app_name" translatable="false">AI Translator</string>
+    <string name="app_name" translatable="false">Dịch Du Lịch Offline</string>
 
     <string name="tab_conversation">Conversation</string>
     <string name="tab_packs">Language packs</string>
@@ -52,10 +52,10 @@
 
     <!-- Microphone permission -->
     <string name="mic_title">Microphone needed</string>
-    <string name="mic_rationale">To translate speech, AI Translator listens only after you press Speak. Audio is processed on the phone and never sent anywhere.</string>
+    <string name="mic_rationale">To translate speech, the app listens only after you press Speak. Audio is processed on the phone and never sent anywhere.</string>
     <string name="mic_continue">Continue</string>
     <string name="mic_denied_title">Microphone is off</string>
-    <string name="mic_denied_message">Turn on microphone access for AI Translator in Settings to speak. You can still type sentences.</string>
+    <string name="mic_denied_message">Turn on microphone access for this app in Settings to speak. You can still type sentences.</string>
     <string name="open_settings">Open settings</string>
     <!-- History -->
     <string name="tab_history">History</string>

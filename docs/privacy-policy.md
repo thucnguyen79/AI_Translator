@@ -1,8 +1,8 @@
-# Privacy Policy — AI Translator
+# Privacy Policy — Dịch Du Lịch Offline
 
-_Last updated: 2026-10-28_
+_Last updated: 2026-10-30_
 
-AI Translator is an offline conversation translator. It is free and open source
+Dịch Du Lịch Offline ("Offline Travel Translator") is an offline conversation translator. It is free and open source
 (<https://github.com/thucnguyen79/AI_Translator>).
 
 ## What the app does with your data
@@ -17,7 +17,7 @@ AI Translator is an offline conversation translator. It is free and open source
   models) from GitHub, Hugging Face and Mozilla's model servers, when you ask for them. These downloads contain no
   personal data. Conversations never use the network.
 - **Voices.** Translations are read aloud by your phone's text-to-speech engine or by the built-in Supertonic
-  voice. If your phone's engine has no offline voice for a language, that engine (not AI Translator) may use the
+  voice. If your phone's engine has no offline voice for a language, that engine (not this app) may use the
   network; the app warns you when this is the case.
 
 ## What the app does not do
@@ -44,11 +44,11 @@ Questions: open an issue at <https://github.com/thucnguyen79/AI_Translator/issue
 
 ---
 
-# Chính sách quyền riêng tư — AI Translator (tiếng Việt)
+# Chính sách quyền riêng tư — Dịch Du Lịch Offline (tiếng Việt)
 
 - **Micro:** chỉ thu âm khi bạn bấm *Nói*. Nhận dạng, dịch và đọc đều chạy trên máy. Âm thanh không được lưu và không gửi đi đâu.
 - **Lịch sử:** chữ của hội thoại (không có âm thanh) được lưu trên máy để xem, tìm, chia sẻ hoặc xoá trong tab *Lịch sử*. Bật *Chế độ riêng tư* để không lưu. Gỡ app là xoá lịch sử; app không sao lưu lên mạng.
 - **Chia sẻ:** chữ chỉ rời khỏi máy khi chính bạn bấm *Chia sẻ* hoặc *Sao chép*.
 - **Mạng:** chỉ dùng để tải gói ngôn ngữ (mô hình) từ GitHub, Hugging Face và máy chủ của Mozilla khi bạn yêu cầu; không kèm dữ liệu cá nhân. Hội thoại không dùng mạng.
-- **Giọng đọc:** dùng bộ đọc của máy hoặc giọng Supertonic có sẵn trong gói. Nếu bộ đọc của máy không có giọng offline cho một ngôn ngữ, bộ đọc đó (không phải AI Translator) có thể dùng mạng; app sẽ cảnh báo.
+- **Giọng đọc:** dùng bộ đọc của máy hoặc giọng Supertonic có sẵn trong gói. Nếu bộ đọc của máy không có giọng offline cho một ngôn ngữ, bộ đọc đó (không phải Dịch Du Lịch Offline) có thể dùng mạng; app sẽ cảnh báo.
 - Không tài khoản, không quảng cáo, không thống kê/theo dõi, không bán hay chia sẻ dữ liệu.

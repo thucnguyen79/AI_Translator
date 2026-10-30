@@ -45,10 +45,10 @@
     <string name="diag_session">Phiên hiện tại: %1$d câu (%2$d nói, %3$d gõ)</string>
 
     <string name="mic_title">Cần quyền micro</string>
-    <string name="mic_rationale">Để dịch lời nói, AI Translator chỉ nghe sau khi bạn bấm Nói. Âm thanh được xử lý ngay trên máy, không gửi đi đâu.</string>
+    <string name="mic_rationale">Để dịch lời nói, ứng dụng chỉ nghe sau khi bạn bấm Nói. Âm thanh được xử lý ngay trên máy, không gửi đi đâu.</string>
     <string name="mic_continue">Tiếp tục</string>
     <string name="mic_denied_title">Micro đang bị tắt</string>
-    <string name="mic_denied_message">Hãy bật quyền micro cho AI Translator trong Cài đặt để nói. Bạn vẫn có thể nhập câu bằng bàn phím.</string>
+    <string name="mic_denied_message">Hãy bật quyền micro cho Dịch Du Lịch Offline trong Cài đặt để nói. Bạn vẫn có thể nhập câu bằng bàn phím.</string>
     <string name="open_settings">Mở cài đặt</string>
     <!-- Lịch sử -->
     <string name="tab_history">Lịch sử</string>

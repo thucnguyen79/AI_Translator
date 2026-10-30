@@ -1,114 +1,129 @@
-# Phát hành lên Google Play
+# Phát hành "Dịch Du Lịch Offline" lên Google Play
 
-Hướng dẫn từng bước, theo thứ tự. 👤 = việc anh/chị tự làm (tài khoản, thanh toán, mật khẩu); các bước còn lại có thể nhờ Claude.
+Làm lần lượt từ trên xuống. 👤 = anh/chị tự làm (mật khẩu, tài khoản); 🤖 = nhờ Claude làm được.
+Tên menu trong Play Console có thể hiện tiếng Anh hoặc tiếng Việt tuỳ cài đặt — ghi cả hai.
 
-> Đã kiểm tra (2026-10-30): bản AAB **35 MB** (giới hạn của Play 200 MB); `targetSdk 36` đạt yêu cầu API 36 cho app mới;
-> cả 6 thư viện native đã căn trang **16 KB** (`llvm-readelf`: LOAD align `0x4000`, `zipalign -c -P 16` OK); chỉ arm64-v8a (64-bit).
+> Đã kiểm tra (2026-10-30): AAB **35 MB** (giới hạn 200 MB) · `targetSdk 36` (yêu cầu API 36 cho app mới) ·
+> 6 thư viện native căn trang **16 KB** · chỉ arm64-v8a (64-bit) · mã gói `io.github.thucnguyen79.aitranslator`.
 
-## Tổng quan thời gian
+## Bước 1 — 👤 Tạo khoá ký (một lần, ~5 phút)
 
-| Bước | Thời gian |
-|---|---|
-| 1. Tạo tài khoản nhà phát triển, xác minh danh tính | 1–3 ngày (chờ Google duyệt) |
-| 2–4. Khoá ký, build, tạo app trên Play Console, điền thông tin | 1 buổi |
-| 5. Kiểm thử kín với **≥ 12 người trong 14 ngày liên tục** (tài khoản cá nhân) | ≥ 14 ngày |
-| 6. Xin quyền phát hành chính thức → Google duyệt | vài ngày |
-
-## 1. 👤 Tạo tài khoản Google Play Console
-
-1. Vào <https://play.google.com/console/signup>, đăng nhập bằng tài khoản Google sẽ dùng lâu dài.
-2. Chọn loại tài khoản:
-   - **Cá nhân**: nhanh, nhưng tài khoản mới **bắt buộc kiểm thử kín ≥ 12 người × 14 ngày** trước khi lên chính thức (bước 5).
-   - **Tổ chức** (công ty): cần **số D-U-N-S** của công ty (miễn phí, đăng ký qua Dun & Bradstreet, mất vài ngày đến vài tuần); không bị yêu cầu 12 người × 14 ngày.
-3. Trả phí đăng ký một lần **25 USD** (thẻ Visa/Mastercard).
-4. Xác minh danh tính (CCCD/hộ chiếu) và số điện thoại; Google duyệt trong vài ngày.
-
-## 2. 👤 Tạo khoá ký (upload key)
-
-Bản lên Play được ký bằng **khoá tải lên (upload key)** của anh/chị; Google giữ khoá ký thật của app (Play App Signing).
-Mất upload key thì vẫn xin Google cấp lại được, nhưng mất vài ngày — hãy sao lưu file `.jks` và mật khẩu (trình quản lý mật khẩu, ổ ngoài). **Không đưa lên git.**
+Mở PowerShell tại thư mục dự án `D:\Projects\AI_Translators`:
 
 ```bash
-D:\Tools\jdk-21.0.11+10\bin\keytool.exe -genkeypair -v -keystore release.jks -alias aitranslator -keyalg RSA -keysize 4096 -validity 10000
+D:\Tools\jdk-21.0.11+10\bin\keytool.exe -genkeypair -v -keystore release.jks -alias dichdulich -keyalg RSA -keysize 4096 -validity 10000
 ```
 
-Tạo file `keystore.properties` ở thư mục gốc dự án (đã có trong `.gitignore`):
+- Nhập mật khẩu khoá 2 lần (ghi lại ngay vào trình quản lý mật khẩu).
+- Các câu hỏi tên/tổ chức/thành phố: điền tuỳ ý (ví dụ tên, `Ho Chi Minh`, `VN`), cuối cùng gõ `yes`.
+
+Tạo file `keystore.properties` cùng thư mục (file này và `release.jks` đã được git bỏ qua, **không bao giờ đưa lên GitHub**):
 
 ```properties
 storeFile=release.jks
-storePassword=...
-keyAlias=aitranslator
-keyPassword=...
+storePassword=MẬT_KHẨU_VỪA_ĐẶT
+keyAlias=dichdulich
+keyPassword=MẬT_KHẨU_VỪA_ĐẶT
 ```
 
-Trên CI thay bằng biến môi trường `RELEASE_STOREFILE`, `RELEASE_STOREPASSWORD`, `RELEASE_KEYALIAS`, `RELEASE_KEYPASSWORD`.
-Không có các giá trị này thì bản release được ký bằng khoá debug — **Play sẽ từ chối** bản đó.
+Sao lưu `release.jks` + mật khẩu ra một nơi khác (USB, Google Drive cá nhân). Nếu mất, vẫn xin Google đổi khoá được nhưng mất vài ngày.
 
-## 3. Build bản phát hành
+## Bước 2 — 🤖 Build bản phát hành
 
-1. Mỗi lần nộp bản mới: tăng `versionCode` (1, 2, 3…) và sửa `versionName` (0.1.0 → 0.1.1…) trong `app/build.gradle.kts`.
-2. Build App Bundle:
+```bash
+.\gradlew.bat :app:bundleRelease
+```
 
-   ```bash
-   .\gradlew.bat :app:bundleRelease
+File cần tải lên: `app\build\outputs\bundle\release\app-release.aab`. Mỗi lần tải bản mới lên Play phải tăng `versionCode` trong `app/build.gradle.kts` (1 → 2 → 3…).
+
+## Bước 3 — 👤 Tạo app trên Play Console
+
+1. Trang chủ Play Console → **Create app** (Tạo ứng dụng).
+2. Điền:
+   - **App name**: `Dịch Du Lịch Offline`
+   - **Default language**: `Vietnamese – vi`
+   - **App or game**: App · **Free or paid**: Free
+   - Tích 2 ô cam kết (Developer Program Policies, US export laws) → **Create app**.
+
+> Không bán app (Free) thì sau này không đổi sang trả phí được — đúng với app này.
+
+## Bước 4 — 👤 Thử nội bộ trước (khuyên làm, không cần duyệt)
+
+Giúp kiểm tra bản tải từ Play chạy được trên máy của chính anh/chị trước khi mời người khác.
+
+1. **Test and release → Testing → Internal testing** (Kiểm thử nội bộ) → tab **Testers** → **Create email list** → đặt tên "Nội bộ", thêm email Gmail của anh/chị → **Save**.
+2. **Create new release** → lần đầu Play hỏi về **Play App Signing** → chọn để Google quản lý khoá ký (mặc định) → tải `app-release.aab` lên.
+3. **Release name** tự điền `1 (0.1.0)`. **Release notes** (tiếng Việt):
    ```
+   <vi-VN>
+   Bản đầu tiên: dịch hội thoại offline Việt–Anh–Trung–Hàn–Nhật.
+   </vi-VN>
+   ```
+4. **Next** → **Save and publish** → tab **Testers** → **Copy link** → mở link trên điện thoại → *Accept invite* → cài từ Play → thử tải 1 gói và nói vài câu.
 
-   File ra: `app/build/outputs/bundle/release/app-release.aab`.
-3. Kiểm tra nhanh trước khi nộp: cài bản release lên máy (`.\gradlew.bat :app:installRelease`), mở app, tải 1 gói, nói thử 1 câu.
+## Bước 5 — 👤 Điền "App content" (Nội dung ứng dụng)
 
-## 4. 👤 Tạo app và điền thông tin trên Play Console
+Menu **Policy and programs → App content** (hoặc mục *Set up your app* trên Dashboard). Từng mục:
 
-**Tạo app**: *Create app* → tên app, ngôn ngữ mặc định **Tiếng Việt – vi**, loại *App*, *Free*, đồng ý các cam kết.
-
-> Tên "AI Translator" rất phổ biến trên Play và dễ bị nhầm/trùng — nên đặt tên riêng, ví dụ "Dịch Du Lịch Offline – 5 thứ tiếng". Đổi tên hiển thị trong `app_name` (`strings.xml`), **không** đổi `applicationId` (`io.github.thucnguyen79.aitranslator` là cố định mãi mãi sau lần tải lên đầu tiên).
-
-Trong mục **"Thiết lập ứng dụng" (Set up your app)** — điền lần lượt:
-
-| Mục | Điền gì cho app này |
+| Mục | Chọn / điền |
 |---|---|
-| Chính sách quyền riêng tư | `https://github.com/thucnguyen79/AI_Translator/blob/main/docs/privacy-policy.md` (repo đang công khai; nếu sau này chuyển repo về riêng tư thì phải đưa trang này sang GitHub Pages hoặc web khác) |
-| Quyền truy cập ứng dụng | Không cần đăng nhập — mọi chức năng dùng được ngay |
-| Quảng cáo | Không có quảng cáo |
-| Phân loại nội dung | Làm bảng câu hỏi IARC: loại *Utility/Productivity*; không bạo lực, không nội dung người dùng chia sẻ công khai, không mua bán → thường ra mức "Mọi lứa tuổi" |
-| Đối tượng mục tiêu | Chọn **18+** (hoặc 13+); không chọn trẻ em để tránh chính sách Gia đình |
-| An toàn dữ liệu (Data safety) | **Không thu thập, không chia sẻ dữ liệu**. Micro chỉ xử lý trên máy, không gửi đi → không tính là "thu thập". Có mã hoá khi truyền: Có (chỉ tải gói qua HTTPS). Cho phép xoá dữ liệu: người dùng tự xoá lịch sử trong app |
-| Ứng dụng chính phủ / tài chính / sức khoẻ | Không |
-| **Quyền dịch vụ chạy nền (Foreground service)** | Khai báo loại **Data sync** (`FOREGROUND_SERVICE_DATA_SYNC`): "tải gói ngôn ngữ do người dùng bấm tải, tiếp tục khi rời app, có thông báo tiến độ". Google yêu cầu **video ngắn** (quay màn hình: bấm Tải gói → về màn hình chính → thông báo tiến độ chạy) — tải lên YouTube (chế độ không công khai) và dán link |
+| **Privacy policy** | `https://github.com/thucnguyen79/AI_Translator/blob/main/docs/privacy-policy.md` |
+| **App access** | *All functionality in my app is available without any access restrictions* |
+| **Ads** | *No, my app does not contain ads* |
+| **Content rating** | *Start questionnaire* → email liên hệ → category **All Other App Types** (hoặc *Utility/Productivity* nếu có) → trả lời **No** cho bạo lực, tình dục, ngôn ngữ thô tục, ma tuý, cờ bạc; *Does the app allow users to interact or exchange content?* → **No** (chia sẻ chữ sang app khác không tính); *Share location?* → **No**; *Digital purchases?* → **No** → **Save → Submit** |
+| **Target audience and content** | Độ tuổi: chỉ chọn **18 and over** · *Could your app unintentionally appeal to children?* → **No** |
+| **News apps** | *No* |
+| **Data safety** | *Does your app collect or share any of the required user data types?* → **No** → Next → Submit. (Micro chỉ xử lý trên máy, không gửi đi nên không tính là thu thập; app không có tài khoản) |
+| **Government apps** | *No* |
+| **Financial features** | *My app doesn't provide any financial features* |
+| **Health** | *My app does not have any health features* |
+| **Advertising ID** | *No* (app không dùng mã quảng cáo) |
+| **Foreground service permissions** | Hiện ra sau khi đã tải AAB (Bước 4). Chọn loại **Data sync** → mô tả: *"Tải gói ngôn ngữ (mô hình nhận dạng, dịch, giọng đọc) khi người dùng bấm Tải; việc tải tiếp tục khi người dùng rời app và hiển thị thông báo tiến độ. Người dùng có thể huỷ bất cứ lúc nào."* → **Video**: link YouTube (xem bên dưới) |
 
-**Trang giới thiệu trên Store (Main store listing)** — nội dung soạn sẵn (vi + en), icon và ảnh bìa ở thư mục [store/](../store/listing.md):
+**Quay video khai báo dịch vụ nền** (~20 giây): trên điện thoại vuốt mở *Quay màn hình* → mở app → tab ⬇ → bấm **Tải** một gói (ví dụ 日本語) → về màn hình chính → kéo thanh thông báo xuống cho thấy "Đang tải gói ngôn ngữ" với tiến độ → dừng quay. Tải lên YouTube chế độ **Không công khai (Unlisted)**, dán link.
 
-| Thành phần | Yêu cầu |
-|---|---|
-| Mô tả ngắn | ≤ 80 ký tự, ví dụ: "Dịch hội thoại offline Việt–Anh–Trung–Hàn–Nhật, không cần mạng, miễn phí" |
-| Mô tả đầy đủ | ≤ 4000 ký tự: tính năng (nói/nhập/câu mẫu, 2–4 người, rảnh tay, lịch sử), **cần tải gói ngôn ngữ 100–200 MB mỗi thứ tiếng lần đầu**, không quảng cáo, không thu thập dữ liệu, ghi nguồn mô hình mã nguồn mở |
-| Icon | PNG 512 × 512 |
-| Ảnh bìa (feature graphic) | PNG/JPG 1024 × 500 |
-| Ảnh chụp màn hình điện thoại | 2–8 ảnh, tỉ lệ 9:16, cạnh 320–3840 px (Claude có thể chụp từ máy thử qua adb) |
-| Thể loại | Công cụ (Tools) hoặc Du lịch & Địa phương (Travel & Local) |
+## Bước 6 — 👤 Trang Store (Store listing)
 
-**Giấy phép mô hình** (đã ghi trong tab Thông tin): Supertonic dùng giấy phép OpenRAIL-M — giấy phép này yêu cầu chuyển tiếp các điều khoản hạn chế sử dụng cho người dùng; nên thêm vào mô tả hoặc trang chính sách một dòng dẫn link tới giấy phép Supertonic. SenseVoice (FunASR Model License) và vibert-capu (CC-BY-SA-4.0) cần ghi nguồn — đã có.
+1. **Grow users → Store presence → Main store listing** (Trang thông tin chính):
+   - **App name**: `Dịch Du Lịch Offline`
+   - **Short description**, **Full description**: copy từ [store/listing.md](../store/listing.md) (phần Tiếng Việt)
+   - **App icon**: [store/icon-512.png](../store/icon-512.png)
+   - **Feature graphic**: [store/feature-1024x500.png](../store/feature-1024x500.png)
+   - **Phone screenshots**: 5 ảnh trong [store/screenshots/](../store/screenshots/) (theo thứ tự 01 → 05)
+   - Ảnh máy tính bảng: bỏ trống được → **Save**
+2. Thêm bản tiếng Anh (khuyên làm, khách nước ngoài thấy mô tả tiếng Anh): trên trang đó **Manage translations → Add your own translations → English (United States) – en-US** → dán phần English của `store/listing.md`; tên tiếng Anh có thể để `Offline Travel Translator`.
+3. **Grow users → Store presence → Store settings** (Cài đặt cửa hàng):
+   - **App category**: *Travel & Local* (Du lịch & Địa phương)
+   - **Tags**: Translator, Travel (tuỳ chọn)
+   - **Contact details**: email (bắt buộc, hiện công khai trên Play), website: `https://github.com/thucnguyen79/AI_Translator` (tuỳ chọn) → **Save**
 
-## 5. 👤 Kiểm thử kín (bắt buộc với tài khoản cá nhân mới)
+## Bước 7 — 👤 Kiểm thử kín (Closed testing) — nếu Play yêu cầu
 
-1. *Testing → Closed testing* → tạo track, tải `app-release.aab` lên, viết ghi chú phát hành.
-2. Thêm người thử bằng danh sách email (Google Groups hoặc danh sách email trong Console) — cần **ít nhất 12 người**.
-3. Gửi link tham gia cho họ; mỗi người bấm "Trở thành người thử nghiệm" rồi cài app từ Play.
-4. Giữ **≥ 12 người tham gia liên tục ít nhất 14 ngày** (ai rời đi rồi vào lại thì đếm lại từ đầu). Nhờ họ dùng thật: tải gói, nói vài câu — Google có thể hỏi về việc kiểm thử khi xét duyệt.
-5. Trong 14 ngày đó có thể sửa lỗi và tải bản mới (tăng `versionCode`).
+Tài khoản cá nhân tạo sau 13/11/2023 phải có **≥ 12 người thử, tham gia liên tục ≥ 14 ngày** trước khi được phát hành chính thức.
+Cách biết: trên **Dashboard** của app mới, nếu có thẻ *"Apply for production / Đăng ký quyền truy cập phiên bản chính thức"* kèm điều kiện 12 người · 14 ngày thì phải làm bước này; nếu mục **Production** đã mở sẵn thì sang thẳng Bước 8.
 
-## 6. 👤 Xin phát hành chính thức
+1. **Test and release → Testing → Closed testing** → track *Closed testing - Alpha* → **Manage track**.
+2. **Countries / regions** → **Add countries** → Vietnam (và các nước muốn thử) → Save.
+3. **Testers** → **Create email list** → thêm **≥ 12 địa chỉ Gmail** (nên mời 15–20 để dư) → Save. Hoặc dùng một Google Group.
+4. **Create new release** → **Add from library** (chọn bản đã tải ở Bước 4) → release notes → **Next → Save → Send for review** (Play duyệt bản thử kín, thường vài giờ đến 2 ngày).
+5. Khi duyệt xong: tab **Testers** → **Copy link** → gửi cho người thử. Mỗi người: mở link bằng đúng Gmail đã thêm → **Become a tester** → cài app từ Play.
+6. Giữ đủ 12 người **không rời nhóm trong 14 ngày**. Nhờ họ dùng thật (tải gói, nói vài câu) — khi xin phát hành Google hỏi về phản hồi của người thử.
+7. Trong 14 ngày vẫn sửa lỗi và tải bản mới được (tăng `versionCode`, bản mới không làm mất số ngày đã tính).
 
-1. Sau 14 ngày: *Dashboard → Apply for production* → trả lời các câu hỏi về đợt kiểm thử (bao nhiêu người, phản hồi gì, đã sửa gì).
-2. Google duyệt quyền (thường vài ngày) → *Production → Create release* → tải AAB → chọn quốc gia → gửi duyệt.
-3. Bản đầu tiên thường được duyệt trong 1–7 ngày.
+## Bước 8 — 👤 Phát hành chính thức (Production)
+
+1. Sau 14 ngày: **Dashboard → Apply for production** → trả lời: đã thử với bao nhiêu người, họ phản hồi gì, đã sửa gì, app sẵn sàng chưa → Submit. Google trả lời trong khoảng 7 ngày.
+2. Được duyệt: **Test and release → Production → Countries / regions** → chọn nước (Vietnam, hoặc *Add all*) → **Create new release** → **Add from library** (hoặc tải AAB mới) → release notes → **Next → Save → Send for review**.
+3. Bản đầu tiên thường được duyệt trong 1–7 ngày; Play gửi email khi app lên Store.
 
 ## Cập nhật về sau
 
-Tăng `versionCode` → `bundleRelease` → *Production → Create new release* → tải AAB → ghi chú thay đổi.
-Mỗi năm Google nâng yêu cầu `targetSdk` (thường hạn cuối tháng 8): kiểm tra và nâng `targetSdk` trong `gradle/libs.versions.toml`.
+Tăng `versionCode` (+1) và `versionName` → `.\gradlew.bat :app:bundleRelease` → **Production → Create new release** → tải AAB → ghi chú → gửi duyệt.
+Mỗi năm Google nâng yêu cầu `targetSdk` (thường hạn 31/8): nâng `targetSdk` trong `gradle/libs.versions.toml`.
 
-## Lưu ý kỹ thuật
+## Ghi chú
 
-- Gói ngôn ngữ tải từ GitHub, Hugging Face, máy chủ Mozilla khi người dùng bấm — là dữ liệu mô hình, không phải mã chạy, nên không vi phạm chính sách tải mã của Play.
-- R8 (thu gọn mã) đang tắt vì sherpa-onnx và Bergamot gọi lớp Kotlin từ mã native; bật thì phải viết luật giữ lớp và thử lại kỹ.
-- Kích thước tải về từ Play (~35 MB) chưa gồm gói ngôn ngữ: nói rõ trong mô tả để tránh đánh giá xấu.
+- Mã gói `io.github.thucnguyen79.aitranslator` cố định vĩnh viễn sau lần tải AAB đầu tiên (app khác của anh/chị dùng dạng `com.thucnguyen79.…`; muốn đồng bộ thì phải đổi **trước** Bước 4).
+- Gói ngôn ngữ tải từ GitHub, Hugging Face, Mozilla khi người dùng bấm — là dữ liệu mô hình, không phải mã chạy, nên không vi phạm chính sách tải mã của Play.
+- Supertonic dùng giấy phép OpenRAIL-M (có điều khoản hạn chế sử dụng); giấy phép các mô hình được liệt kê trong tab Thông tin của app.
+- R8 (thu gọn mã) đang tắt vì sherpa-onnx và Bergamot gọi lớp Kotlin từ mã native.
