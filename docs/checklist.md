@@ -188,4 +188,4 @@
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
 | 2026-10-28 | `79defb1` | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
 | 2026-10-30 | `3340d64` | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
-| 2026-10-30 | _(commit này)_ | Tài sản Google Play: icon 512, ảnh bìa 1024×500, mô tả vi + en (store/) |
+| 2026-10-30 | `4a1e5d3` | Tài sản Google Play: icon 512, ảnh bìa 1024×500, mô tả vi + en (store/) |
