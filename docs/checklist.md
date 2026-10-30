@@ -115,7 +115,7 @@
 - [x] F7.2 Bộ cụm từ du lịch: 100 câu × 5 thứ tiếng, 8 chủ đề, nút "📖 Câu mẫu" mỗi nửa (quay về đúng người), dùng bản dịch soạn sẵn, không cần gói ngôn ngữ — thử trên máy ✓ (cả 2 nửa, cuộn ở nửa xoay đúng chiều); 👤 người bản ngữ nên rà câu zh/ko/ja
 - [x] F9.1 Tự lưu phiên (chỉ chữ, JSON trong bộ nhớ riêng của app) · F9.2 xem & tìm (cả trong bản dịch) · F9.4 chia sẻ dạng chữ song ngữ · F9.5 chế độ riêng tư — tab Lịch sử — thử trên máy ✓ (tự lưu, tìm trong bản dịch, mở phiên, bảng chia sẻ, xoá); chế độ riêng tư chưa thử
 - [x] F10.2 Cỡ chữ (4 mức, nhân thêm trên cỡ chữ của máy) & giao diện Theo máy/Sáng/Tối (biểu tượng thanh trạng thái đổi màu theo) — thử trên máy ✓
-- [ ] Phát hành Google Play 🟡 — có [chính sách quyền riêng tư](privacy-policy.md) (en + vi) và [hướng dẫn phát hành](release.md); 👤 còn tạo khoá ký, đăng chính sách lên web, ảnh chụp màn hình, khai báo trên Play Console
+- [ ] Phát hành Google Play 🟡 — [hướng dẫn từng bước](release.md); đã kiểm tra: AAB 35 MB, targetSdk 36, thư viện native căn trang 16 KB ✓, chính sách quyền riêng tư có link công khai. 👤 Còn: tài khoản Play Console (25 USD), khoá ký, điền thông tin Store, video khai báo dịch vụ nền, ảnh chụp/icon, kiểm thử kín ≥ 12 người × 14 ngày (tài khoản cá nhân)
 
 ## Lỗi & tồn đọng kỹ thuật
 
@@ -123,7 +123,7 @@
 - [x] ~~Tải 2 gói cùng lúc tranh chấp gói dùng chung; gói English lỗi ENOENT~~ (sửa `d72459c`)
 - [ ] Người ngồi phía trên mở bàn phím → bàn phím vẫn hiện ở mép người kia (giới hạn của dùng chung 1 máy); ô nhập không còn bị che
 - [x] ~~Lần nói đầu tiên chờ nạp mô hình~~ → nạp sẵn ở nền
-- [ ] APK debug ~97 MB (thư viện native không nén) → kiểm tra kích thước bản release, cân nhắc App Bundle
+- [x] ~~APK debug ~97 MB~~ → bản phát hành dạng App Bundle chỉ 35 MB (APK release 86 MB vì thư viện native không nén)
 - [x] ~~Hàng chọn ngôn ngữ ở nửa trên không cuộn được (trôi ngược khi xoay)~~ → chip tự xuống dòng, luôn đủ 5 ngôn ngữ
 - [x] ~~Bấm tải gói làm app crash (thiếu quyền ACCESS_NETWORK_STATE)~~
 - [x] ~~Bong bóng cao thêm (dịch ngược, dịch bù) mà danh sách không cuộn theo → nút ✎ bị che~~
@@ -187,3 +187,4 @@
 | 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
 | 2026-10-28 | `79defb1` | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
+| 2026-10-30 | _(commit này)_ | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
