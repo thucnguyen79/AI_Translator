@@ -190,4 +190,4 @@
 | 2026-10-30 | `3340d64` | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
 | 2026-10-30 | `4a1e5d3` | Tài sản Google Play: icon 512, ảnh bìa 1024×500, mô tả vi + en (store/) |
 | 2026-10-30 | `1939754` | 5 ảnh chụp màn hình cho Google Play (store/screenshots), cắt từ ảnh thử trước đó |
-| 2026-10-30 | _(commit này)_ | Đổi tên app thành "Dịch Du Lịch Offline" (tên app, quyền micro, chính sách quyền riêng tư, trang Store, ảnh bìa); hướng dẫn Play Console từng bước theo tài khoản hiện có |
+| 2026-10-30 | `b91eeba` | Đổi tên app thành "Dịch Du Lịch Offline" (tên app, quyền micro, chính sách quyền riêng tư, trang Store, ảnh bìa); hướng dẫn Play Console từng bước theo tài khoản hiện có |
