@@ -7,7 +7,7 @@ Nếu đổi tên app, sửa tên ở đây, trong `app_name` (strings.xml) và 
 |---|---|
 | Icon 512 × 512 | [icon-512.png](icon-512.png) (nguồn: [icon.svg](icon.svg), cùng hình với icon trong app) |
 | Ảnh bìa 1024 × 500 | [feature-1024x500.png](feature-1024x500.png) (tạo bằng [make_feature.py](make_feature.py)) |
-| Ảnh chụp màn hình | `screenshots/` — 1080 × 2160 (tỉ lệ 2:1, Play không nhận ảnh dài hơn) |
+| Ảnh chụp màn hình | [screenshots/](screenshots/) — 5 ảnh, rộng 1080 px, tỉ lệ ≤ 2:1 (Play không nhận ảnh dài hơn): đối mặt, rảnh tay, quanh bàn, chuyền tay, câu mẫu. Cắt từ ảnh chụp khi thử trên máy (2026-10-28), bỏ thanh trạng thái và thanh tab cũ; ảnh câu mẫu chụp ở nửa trên nên được xoay lại. Khi cắm máy có thể chụp lại bộ mới (giao diện tiếng Việt, hội thoại Việt–Anh) |
 
 ## Tiếng Việt
 
