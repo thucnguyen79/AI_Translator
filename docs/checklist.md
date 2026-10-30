@@ -187,4 +187,4 @@
 | 2026-10-28 | `7c25bcc` | F3.4 chuyển sang Whisper base (160 MB) + bù tiếng Việt + ngưỡng theo lượt 0,5; tự xoá gói cũ; thử trên máy 5/5 |
 | 2026-10-28 | `a8c649a` | 3 bản nhận diện ngôn ngữ (tiny/base/small) chọn được; thanh tab chỉ biểu tượng, gọn hơn — thử trên máy ✓ |
 | 2026-10-28 | `79defb1` | Giao diện mặc định tiếng Việt, chọn được English trong tab Thông tin — thử trên máy ✓ |
-| 2026-10-30 | _(commit này)_ | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
+| 2026-10-30 | `3340d64` | Hướng dẫn phát hành Google Play (docs/release.md); kiểm tra AAB 35 MB, căn trang 16 KB, targetSdk 36 |
